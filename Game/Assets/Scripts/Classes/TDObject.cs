@@ -1,13 +1,12 @@
 using UnityEngine;
 using System.Collections;
 
-public class TDObject {
+public abstract class TDObject {
 	
-	enum TDType {Monster, Tower};
-	TDType type;
-	int health;
-	int damage;
-	
-	
-	
+	public enum TDType {Monster, Tower};
+	public TDType classType;
+	public int health;
+	public int damage;
+	public int atackSpeed;
+	public Vector2 position;
 }
