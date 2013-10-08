@@ -21,6 +21,5 @@ public class GameController : MonoBehaviour {
 		foreach (MonsterObject monster_ in monsters) {
 			monster_.Update();	
 		}
-		
 	}
 }

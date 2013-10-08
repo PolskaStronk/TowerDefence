@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class TowerObject : TDObject {
 
@@ -7,6 +8,16 @@ public class TowerObject : TDObject {
 	public TowerType type;
 	
 	public GameObject gameObject;
+	
+	public List <int> groups = new List <int> ();
+	
+	#region AttackType
+	public enum AttackType {Nearest, LowestHP, HighestHP, LowestMaxHP, 
+		HighestMaxHP, WhoIsNotAttacked, WhoIsNotAttackedBuyThisTypeOfTower, ToSplashOnly}
+	public bool isCatchTarget = false;
+	
+	
+	#endregion
 	
 	public TowerObject (GameObject gameObject_) {
 		classType = TDObject.TDType.Tower;
