@@ -7,11 +7,16 @@ public class MonsterObject : TDObject {
 	public enum MonsterType {Soldier, EFV, Tank, Boss, MegaBoss, MegaMegaBoss};
 	public MonsterType type;
 	public float speed = 1;
-	public bool isAtackedNow = false;
+	public bool isattackedNow = false;
 	
 	private List <Effect.EffectType> effects = new List<Effect.EffectType> ();
 	
 	public GameObject gameObject;
+	
+	
+	public MonsterObject () {
+		
+	}
 	
 	public MonsterObject (GameObject gameObject_) {
 		classType = TDObject.TDType.Monster;

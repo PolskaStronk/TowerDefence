@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour {
 
-	List <TowerObject> towers = new List<TowerObject> ();
-	List <MonsterObject> monsters = new List<MonsterObject> ();
+	public static List <TowerObject> towers = new List<TowerObject> ();
+	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
 	
 	void Start () {

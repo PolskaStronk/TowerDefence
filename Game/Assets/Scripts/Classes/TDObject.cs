@@ -7,6 +7,6 @@ public abstract class TDObject {
 	public TDType classType;
 	public int health;
 	public int damage;
-	public int atackSpeed;
+	public int attackSpeed;
 	public Vector2 position;
 }
