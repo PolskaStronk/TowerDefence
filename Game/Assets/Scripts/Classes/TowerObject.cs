@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class TowerObject : TDObject {
+public abstract class TowerObject : TDObject {
 
 	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser};
 	public TowerType type;
@@ -17,9 +17,9 @@ public class TowerObject : TDObject {
 		HighestMaxHP, WhoIsNotAttacked, WhoIsNotAttackedBuyThisTypeOfTower, ToSplashOnly}
 	public AttackType attackType = AttackType.Nearest;
 	public bool isCatchTarget = false;
-	
-	
 	#endregion
+	
+	protected float lastAttackTime = -100;
 	
 	public TowerObject () {
 		
@@ -57,18 +57,15 @@ public class TowerObject : TDObject {
 	
 	public void AddDamage(int recievedDamage) {
 		health -= recievedDamage;
+		if (health <= 0) OnDeath();
 	}
 	
 	public void MoveToNextCell() {
 		
 	}
 	
-	public void Update() {
-		
-	}
+	public abstract void Update();
 	
-	public void OnDeath() {
-		
-	}
+	public abstract void OnDeath();
 	
 }

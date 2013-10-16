@@ -4,5 +4,39 @@ using System.Collections;
 public class GunTower : TowerObject {
 	
 	
+	public GunTower () {
+		type = TowerObject.TowerType.Gun;
+		Start();
+	}
+	
+	public GunTower (GameObject gameObject_) {
+		classType = TDObject.TDType.Tower;
+		gameObject = gameObject_;
+		type = TowerObject.TowerType.Gun;
+		Start();
+	}
+	
+	private void Start() {
+		health = 100;
+		damage = 1;
+		attackSpeed = 1;
+		attackRange = 2;
+	}
+	
+	public override void Update() {
+		
+		MonsterObject target = FindEnemy();
+		
+		if (target != null && lastAttackTime + 1/attackSpeed <= Time.time) {
+			lastAttackTime = Time.time;
+			target.AddDamage(damage);
+			
+		}
+			
+	}
+	
+	public override void OnDeath () {
+		
+	}
 	
 }

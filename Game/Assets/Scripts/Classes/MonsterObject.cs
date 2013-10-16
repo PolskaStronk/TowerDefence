@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class MonsterObject : TDObject {
+public abstract class MonsterObject : TDObject {
 
 	public enum MonsterType {Soldier, EFV, Tank, Boss, MegaBoss, MegaMegaBoss};
 	public MonsterType type;
@@ -34,19 +34,21 @@ public class MonsterObject : TDObject {
 	}
 	
 	public void AddDamage(int recievedDamage) {
+		if (health <= 0) 
+			return;
+		
 		health -= recievedDamage;
+		Debug.Log(health + " " + Time.time);
+		if (health <= 0) 
+			OnDeath();
 	}
 	
 	public void MoveToNextCell() {
 		
 	}
 	
-	public void Update() {
-		
-	}
+	public abstract void Update();
 	
-	public void OnDeath() {
-		
-	}
+	public abstract void OnDeath();
 	
 }

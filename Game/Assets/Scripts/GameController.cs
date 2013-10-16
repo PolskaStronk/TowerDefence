@@ -10,6 +10,14 @@ public class GameController : MonoBehaviour {
 	
 	void Start () {
 	
+		GunTower tower_ = new GunTower ();
+		towers.Add(tower_);
+		tower_.position = new Vector2 (0,0);
+		
+		Soldier soldier = new Soldier ();
+		monsters.Add(soldier);
+		soldier.position = new Vector2 (0,0);
+		
 	}
 	
 	void Update () {
