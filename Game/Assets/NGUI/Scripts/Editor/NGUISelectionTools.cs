@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -36,7 +31,7 @@ public class NGUISelectionTools
 		{
 			GameObject[] gos = Selection.gameObjects;
 			bool val = !Selection.activeGameObject.active;
-			foreach (GameObject go in gos) NGUITools.SetActive(go, val);
+			foreach (GameObject go in gos) go.SetActiveRecursively(val);
 		}
 	}
 	
@@ -45,8 +40,9 @@ public class NGUISelectionTools
 	{
 		if (HasValidTransform())
 		{
+			Undo.RegisterSceneUndo("Clear Local Transform");
+
 			Transform t = Selection.activeTransform;
-			NGUIEditorTools.RegisterUndo("Clear Local Transform", t);
 			t.localPosition = Vector3.zero;
 			t.localRotation = Quaternion.identity;
 			t.localScale = Vector3.one;
@@ -59,7 +55,7 @@ public class NGUISelectionTools
 		if (PrefabCheck())
 		{
 			// Make this action undoable
-			NGUIEditorTools.RegisterUndo("Add New Child");
+			Undo.RegisterSceneUndo("Add New Child");
 
 			// Create our new GameObject
 			GameObject newGameObject = new GameObject();
@@ -88,7 +84,7 @@ public class NGUISelectionTools
 	{
 		if (HasValidSelection())
 		{
-			Debug.Log("Selection depends on the following assets:\n\n" + GetDependencyText(Selection.objects, false));
+			Debug.Log("Asset dependencies:\n\n" + GetDependencyText(Selection.objects));
 		}
 	}
 	
@@ -159,9 +155,9 @@ public class NGUISelectionTools
 	/// Function that collects a list of file dependencies from the specified list of objects.
 	/// </summary>
 	
-	static List<AssetEntry> GetDependencyList (Object[] objects, bool reverse)
+	static List<AssetEntry> GetDependencyList (Object[] objects)
 	{
-		Object[] deps = reverse ? EditorUtility.CollectDeepHierarchy(objects) : EditorUtility.CollectDependencies(objects);
+		Object[] deps = EditorUtility.CollectDependencies(objects);
 		
 		List<AssetEntry> list = new List<AssetEntry>();
 		
@@ -214,9 +210,9 @@ public class NGUISelectionTools
 	/// Helper function that gets the dependencies of specified objects and returns them in text format.
 	/// </summary>
 	
-	static string GetDependencyText (Object[] objects, bool reverse)
+	static string GetDependencyText (Object[] objects)
 	{
-		List<AssetEntry> dependencies = GetDependencyList(objects, reverse);
+		List<AssetEntry> dependencies = GetDependencyList(objects);
 		List<string> list = new List<string>();
 		string text = "";
 

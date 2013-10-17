@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 
@@ -27,7 +22,7 @@ public class NGUITransformInspector : Editor
 		{
 			if (DrawButton("P", "Reset Position", IsResetPositionValid(trans), 20f))
 			{
-				NGUIEditorTools.RegisterUndo("Reset Position", trans);
+				Undo.RegisterUndo(trans, "Reset Position");
 				trans.localPosition = Vector3.zero;
 			}
 			pos = DrawVector3(trans.localPosition);
@@ -39,7 +34,7 @@ public class NGUITransformInspector : Editor
 		{
 			if (DrawButton("R", "Reset Rotation", IsResetRotationValid(trans), 20f))
 			{
-				NGUIEditorTools.RegisterUndo("Reset Rotation", trans);
+				Undo.RegisterUndo(trans, "Reset Rotation");
 				trans.localEulerAngles = Vector3.zero;
 			}
 			rot = DrawVector3(trans.localEulerAngles);
@@ -51,7 +46,7 @@ public class NGUITransformInspector : Editor
 		{
 			if (DrawButton("S", "Reset Scale", IsResetScaleValid(trans), 20f))
 			{
-				NGUIEditorTools.RegisterUndo("Reset Scale", trans);
+				Undo.RegisterUndo(trans, "Reset Scale");
 				trans.localScale = Vector3.one;
 			}
 			scale = DrawVector3(trans.localScale);
@@ -61,7 +56,7 @@ public class NGUITransformInspector : Editor
 		// If something changes, set the transform values
 		if (GUI.changed)
 		{
-			NGUIEditorTools.RegisterUndo("Transform Change", trans);
+			Undo.RegisterUndo(trans, "Transform Change");
 			trans.localPosition		= Validate(pos);
 			trans.localEulerAngles	= Validate(rot);
 			trans.localScale		= Validate(scale);

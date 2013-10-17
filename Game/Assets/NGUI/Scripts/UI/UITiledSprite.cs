@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -13,13 +8,24 @@ using System.Collections.Generic;
 
 [ExecuteInEditMode]
 [AddComponentMenu("NGUI/UI/Sprite (Tiled)")]
-public class UITiledSprite : UISlicedSprite
+public class UITiledSprite : UISprite
 {
+	Vector3 mScale = Vector3.one;
+
 	/// <summary>
-	/// Tiled sprites don't have a border.
+	/// Update the texture UVs used by the widget.
 	/// </summary>
 
-	public override Vector4 border { get { return Vector4.zero; } }
+	override public void UpdateUVs ()
+	{
+		base.UpdateUVs();
+		
+		if (cachedTransform.localScale != mScale)
+		{
+			mScale = cachedTransform.localScale;
+			mChanged = true;
+		}
+	}
 
 	/// <summary>
 	/// Tiled sprite shouldn't inherit the sprite's changes to this function.
@@ -49,17 +55,16 @@ public class UITiledSprite : UISlicedSprite
 		Texture tex = material.mainTexture;
 		if (tex == null) return;
 
-		Rect rect = mInner;
+		Rect rect = mOuter;
 
 		if (atlas.coordinates == UIAtlas.Coordinates.TexCoords)
 		{
-			rect = NGUIMath.ConvertToPixels(rect, tex.width, tex.height, true);
+			rect = NGUIMath.ConvertToPixels(mOuter, tex.width, tex.height, true);
 		}
 
 		Vector2 scale = cachedTransform.localScale;
-		float pixelSize = atlas.pixelSize;
-		float width  = Mathf.Abs(rect.width / scale.x) * pixelSize;
-		float height = Mathf.Abs(rect.height / scale.y) * pixelSize;
+		float width  = Mathf.Abs(rect.width / scale.x);
+		float height = Mathf.Abs(rect.height / scale.y);
 
 		// Safety check. Useful so Unity doesn't run out of memory if the sprites are too small.
 		if (width < 0.01f || height < 0.01f)
