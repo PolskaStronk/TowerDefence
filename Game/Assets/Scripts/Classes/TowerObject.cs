@@ -44,7 +44,7 @@ public abstract class TowerObject : TDObject {
 		switch (attackType) {
 			case AttackType.Nearest: 
 			foreach (MonsterObject monster in GameController.monsters) 
-				if ( Mathf.Sqrt( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) ) <= attackRange ) {
+				if ( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) <= Mathf.Pow(attackRange, 2) ) {
 				
 				return monster;
 			}

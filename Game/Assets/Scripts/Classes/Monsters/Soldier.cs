@@ -20,7 +20,9 @@ public class Soldier : MonsterObject {
 	}
 	
 	public override void Update() {
-		if (health <= 0) return; 
+		if (health <= 0) return;
+		
+		GameController.plane[(int)this.position.x, (int)this.position.y].Add(this);
 	}
 	
 	public override void OnDeath () {
