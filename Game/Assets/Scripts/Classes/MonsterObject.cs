@@ -11,6 +11,11 @@ public abstract class MonsterObject : TDObject {
 	
 	private List <Effect.EffectType> effects = new List<Effect.EffectType> ();
 	
+	private enum Direction {Up, Down, Left, Right};
+	private List <Direction> path = new List<Direction> ();
+	private Vector2 targetPosition;
+	private int currentPathCell = 0;
+	
 	public GameObject gameObject;
 	
 	
@@ -44,7 +49,25 @@ public abstract class MonsterObject : TDObject {
 	}
 	
 	public void MoveToNextCell() {
+		Vector2 toAdd;
 		
+		switch (path[currentPathCell]) {
+		case Direction.Up:
+			toAdd = new Vector2 (0,1);
+			break;
+		case Direction.Down:
+			toAdd = new Vector2 (0,-1);
+			break;
+		case Direction.Left:
+			toAdd = new Vector2 (-1,0);
+			break;
+		case Direction.Right:
+			toAdd = new Vector2 (1,1);
+			break;
+		}
+		
+		targetPosition = position + toAdd;
+		currentPathCell++;
 	}
 	
 	public abstract void Update();
