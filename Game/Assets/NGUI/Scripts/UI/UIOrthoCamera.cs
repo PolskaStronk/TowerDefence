@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Convenience script that resizes the camera's orthographic size to match the screen size.

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 /// <summary>
@@ -28,7 +23,7 @@ public class UISpriteAnimationInspector : Editor
 
 		if (anim.framesPerSecond != fps)
 		{
-			NGUIEditorTools.RegisterUndo("Sprite Animation Change", anim);
+			Undo.RegisterUndo(anim, "Sprite Animation Change");
 			anim.framesPerSecond = fps;
 			EditorUtility.SetDirty(anim);
 		}
@@ -37,7 +32,7 @@ public class UISpriteAnimationInspector : Editor
 
 		if (anim.namePrefix != namePrefix)
 		{
-			NGUIEditorTools.RegisterUndo("Sprite Animation Change", anim);
+			Undo.RegisterUndo(anim, "Sprite Animation Change");
 			anim.namePrefix = namePrefix;
 			EditorUtility.SetDirty(anim);
 		}

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Simple example script of how a button can be scaled visibly when the mouse hovers over it or it gets pressed.
@@ -18,52 +13,20 @@ public class UIButtonScale : MonoBehaviour
 	public float duration = 0.2f;
 
 	Vector3 mScale;
-	bool mInitDone = false;
-	bool mStarted = false;
-	bool mHighlighted = false;
 
-	void Start () { mStarted = true; }
-
-	void OnEnable () { if (mStarted && mHighlighted) OnHover(UICamera.IsHighlighted(gameObject)); }
-
-	void OnDisable ()
+	void Start ()
 	{
-		if (tweenTarget != null)
-		{
-			TweenScale tc = tweenTarget.GetComponent<TweenScale>();
-
-			if (tc != null)
-			{
-				tc.scale = mScale;
-				tc.enabled = false;
-			}
-		}
-	}
-
-	void Init ()
-	{
-		mInitDone = true;
 		if (tweenTarget == null) tweenTarget = transform;
 		mScale = tweenTarget.localScale;
 	}
 
 	void OnPress (bool isPressed)
 	{
-		if (enabled)
-		{
-			if (!mInitDone) Init();
-			TweenScale.Begin(tweenTarget.gameObject, duration, isPressed ? Vector3.Scale(mScale, pressed) :
-				(UICamera.IsHighlighted(gameObject) ? Vector3.Scale(mScale, hover) : mScale)).method = UITweener.Method.EaseInOut;
-		}
+		if (enabled) TweenScale.Begin(tweenTarget.gameObject, duration, isPressed ? Vector3.Scale(mScale, pressed) : mScale).method = NTweener.Method.EaseInOut;
 	}
 
 	void OnHover (bool isOver)
 	{
-		if (enabled)
-		{
-			if (!mInitDone) Init();
-			TweenScale.Begin(tweenTarget.gameObject, duration, isOver ? Vector3.Scale(mScale, hover) : mScale).method = UITweener.Method.EaseInOut;
-			mHighlighted = isOver;
-		}
+		if (enabled) TweenScale.Begin(tweenTarget.gameObject, duration, isOver ? Vector3.Scale(mScale, hover) : mScale).method = NTweener.Method.EaseInOut;
 	}
 }

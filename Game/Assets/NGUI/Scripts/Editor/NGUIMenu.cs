@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System;
 using System.Collections.Generic;
@@ -30,7 +25,7 @@ static public class NGUIMenu
 		return go;
 	}
 
-	[MenuItem("NGUI/Attach a Collider #&c")]
+	[MenuItem("NGUI/Attach a Collider")]
 	static public void AddCollider ()
 	{
 		GameObject go = Selection.activeGameObject;
@@ -39,7 +34,7 @@ static public class NGUIMenu
 		{
 			if (go != null)
 			{
-				NGUIEditorTools.RegisterUndo("Add Widget Collider", go);
+				Undo.RegisterUndo(go, "Widget Collider");
 				NGUITools.AddWidgetCollider(go);
 			}
 			else
@@ -49,45 +44,6 @@ static public class NGUIMenu
 		}
 	}
 
-	static Vector3 Round (Vector3 v)
-	{
-		v.x = Mathf.Round(v.x);
-		v.y = Mathf.Round(v.y);
-		v.z = Mathf.Round(v.z);
-		return v;
-	}
-
-	static void MakePixelPerfect (Transform t)
-	{
-		UIWidget w = t.GetComponent<UIWidget>();
-
-		if (w != null)
-		{
-			w.MakePixelPerfect();
-		}
-		else
-		{
-			t.localPosition = Round(t.localPosition);
-			t.localScale = Round(t.localScale);
-
-			for (int i = 0, imax = t.childCount; i < imax; ++i)
-			{
-				MakePixelPerfect(t.GetChild(i));
-			}
-		}
-	}
-
-	[MenuItem("NGUI/Make Pixel Perfect #&p")]
-	static void PixelPerfectSelection ()
-	{
-		if (Selection.activeTransform == null)
-		{
-			Debug.Log("You must select an object in the scene hierarchy first");
-			return;
-		}
-		foreach (Transform t in Selection.transforms) MakePixelPerfect(t);
-	}
-
 	[MenuItem("NGUI/Create a Panel")]
 	static public void AddPanel ()
 	{
@@ -95,7 +51,7 @@ static public class NGUIMenu
 
 		if (NGUIEditorTools.WillLosePrefab(go))
 		{
-			NGUIEditorTools.RegisterUndo("Add a child UI Panel", go);
+			Undo.RegisterUndo(go, "Add a child UI Panel");
 
 			GameObject child = new GameObject(NGUITools.GetName<UIPanel>());
 			child.layer = go.layer;
@@ -123,13 +79,13 @@ static public class NGUIMenu
 		EditorWindow.GetWindow<UICreateNewUIWizard>(false, "UI Tool", true);
 	}
 
-	[MenuItem("NGUI/Panel Tool")]
+	[MenuItem("NGUI/Panel Tool #&p")]
 	static public void OpenPanelWizard ()
 	{
 		EditorWindow.GetWindow<UIPanelTool>(false, "Panel Tool", true);
 	}
 
-	[MenuItem("NGUI/Camera Tool")]
+	[MenuItem("NGUI/Camera Tool #&c")]
 	static public void OpenCameraWizard ()
 	{
 		EditorWindow.GetWindow<UICameraTool>(false, "Camera Tool", true);

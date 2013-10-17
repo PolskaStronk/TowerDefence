@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -28,14 +23,7 @@ public class ComponentSelector : ScriptableWizard
 	{
 		GUILayout.BeginHorizontal();
 		bool show = GUILayout.Button(buttonName, GUILayout.Width(76f));
-#if !UNITY_3_4
-		GUILayout.BeginVertical();
-		GUILayout.Space(5f);
-#endif
 		T o = EditorGUILayout.ObjectField(obj, typeof(T), false, options) as T;
-#if !UNITY_3_4
-		GUILayout.EndVertical();
-#endif
 		GUILayout.EndHorizontal();
 		if (show) Show<T>(cb);
 		else if (o != obj) cb(o);

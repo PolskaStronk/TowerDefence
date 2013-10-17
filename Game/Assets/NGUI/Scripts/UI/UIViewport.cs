@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// This script can be used to restrict camera rendering to a specific part of the screen by specifying the two corners.

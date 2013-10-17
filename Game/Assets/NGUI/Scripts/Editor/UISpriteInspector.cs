@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -24,7 +19,7 @@ public class UISpriteInspector : UIWidgetInspector
 	{
 		if (mSprite != null)
 		{
-			NGUIEditorTools.RegisterUndo("Atlas Selection", mSprite);
+			Undo.RegisterUndo(mSprite, "Atlas Selection");
 			bool resize = (mSprite.atlas == null);
 			mSprite.atlas = obj as UIAtlas;
 			if (resize) mSprite.MakePixelPerfect();
@@ -46,9 +41,9 @@ public class UISpriteInspector : UIWidgetInspector
 	/// Convenience function that displays a list of sprites and returns the selected value.
 	/// </summary>
 
-	static public string SpriteField (UIAtlas atlas, string name, params GUILayoutOption[] options)
+	static public string SpriteField (UIAtlas atlas, string name)
 	{
-		return SpriteField(atlas, "Sprite", name, options);
+		return SpriteField(atlas, "Sprite", name);
 	}
 
 	/// <summary>
@@ -58,14 +53,14 @@ public class UISpriteInspector : UIWidgetInspector
 	override protected bool OnDrawProperties ()
 	{
 		mSprite = mWidget as UISprite;
-		ComponentSelector.Draw<UIAtlas>(mSprite.atlas as UIAtlas, OnSelectAtlas);
+		ComponentSelector.Draw<UIAtlas>(mSprite.atlas, OnSelectAtlas);
 		if (mSprite.atlas == null) return false;
 
-		string spriteName = SpriteField(mSprite.atlas as UIAtlas, mSprite.spriteName);
+		string spriteName = SpriteField(mSprite.atlas, mSprite.spriteName);
 
 		if (mSprite.spriteName != spriteName)
 		{
-			NGUIEditorTools.RegisterUndo("Sprite Change", mSprite);
+			Undo.RegisterUndo(mSprite, "Sprite Change");
 			mSprite.spriteName = spriteName;
 			mSprite.MakePixelPerfect();
 			EditorUtility.SetDirty(mSprite.gameObject);
@@ -85,7 +80,7 @@ public class UISpriteInspector : UIWidgetInspector
 		{
 			// Draw the atlas
 			EditorGUILayout.Separator();
-			Rect rect = NGUIEditorTools.DrawSprite(tex, mSprite.outerUV, mUseShader ? mSprite.atlas.spriteMaterial : null);
+			Rect rect = NGUIEditorTools.DrawSprite(tex, mSprite.outerUV, mUseShader ? mSprite.atlas.material : null);
 
 			// Draw the selection
 			NGUIEditorTools.DrawOutline(rect, mSprite.outerUV, new Color(0.4f, 1f, 0f, 1f));

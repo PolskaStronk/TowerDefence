@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -29,9 +24,10 @@ public class UICreateWidgetWizard : EditorWindow
 		Input,
 		PopupList,
 		PopupMenu,
-		ScrollBar,
 	}
 
+	static UIAtlas mAtlas;
+	static UIFont mFont;
 	static WidgetType mType = WidgetType.Button;
 	static string mSprite = "";
 	static string mSliced = "";
@@ -50,12 +46,7 @@ public class UICreateWidgetWizard : EditorWindow
 	static string mListFG = "";
 	static string mListBG = "";
 	static string mListHL = "";
-	static string mScrollBG = "";
-	static string mScrollFG = "";
-	static Color mColor = Color.white;
 	static bool mLoaded = false;
-	static bool mScrollCL = true;
-	static UIScrollBar.Direction mScrollDir = UIScrollBar.Direction.Horizontal;
 
 	/// <summary>
 	/// Save the specified string into player prefs.
@@ -65,11 +56,11 @@ public class UICreateWidgetWizard : EditorWindow
 	{
 		if (string.IsNullOrEmpty(val))
 		{
-			EditorPrefs.DeleteKey(field);
+			PlayerPrefs.DeleteKey(field);
 		}
 		else
 		{
-			EditorPrefs.SetString(field, val);
+			PlayerPrefs.SetString(field, val);
 		}
 	}
 
@@ -77,19 +68,18 @@ public class UICreateWidgetWizard : EditorWindow
 	/// Load the specified string from player prefs.
 	/// </summary>
 
-	static string LoadString (string field) { string s = EditorPrefs.GetString(field); return (string.IsNullOrEmpty(s)) ? "" : s; }
+	static string LoadString (string field) { string s = PlayerPrefs.GetString(field); return (string.IsNullOrEmpty(s)) ? "" : s; }
 
 	/// <summary>
-	/// Save all serialized values in editor prefs.
+	/// Save all serialized values in player prefs.
 	/// This is necessary because static values get wiped out as soon as scripts get recompiled.
 	/// </summary>
 
 	static void Save ()
 	{
-		EditorPrefs.SetInt("NGUI Widget Type", (int)mType);
-		EditorPrefs.SetInt("NGUI Color", NGUIMath.ColorToInt(mColor));
-		EditorPrefs.SetBool("NGUI ScrollCL", mScrollCL);
-		EditorPrefs.SetInt("NGUI Scroll Dir", (int)mScrollDir);
+		PlayerPrefs.SetInt("NGUI Widget Type", (int)mType);
+		PlayerPrefs.SetInt("NGUI Atlas", (mAtlas != null) ? mAtlas.GetInstanceID() : -1);
+		PlayerPrefs.SetInt("NGUI Font", (mFont != null) ? mFont.GetInstanceID() : -1);
 
 		SaveString("NGUI Sprite", mSprite);
 		SaveString("NGUI Sliced", mSliced);
@@ -108,22 +98,24 @@ public class UICreateWidgetWizard : EditorWindow
 		SaveString("NGUI ListFG", mListFG);
 		SaveString("NGUI ListBG", mListBG);
 		SaveString("NGUI ListHL", mListHL);
-		SaveString("NGUI ScrollBG", mScrollBG);
-		SaveString("NGUI ScrollFG", mScrollFG);
+
+		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Load all serialized values from editor prefs.
+	/// Load all serialized values from Player Prefs.
 	/// This is necessary because static values get wiped out as soon as scripts get recompiled.
 	/// </summary>
 
 	static void Load ()
 	{
-		mType = (WidgetType)EditorPrefs.GetInt("NGUI Widget Type", 0);
-		mScrollDir = (UIScrollBar.Direction)EditorPrefs.GetInt("NGUI Scroll Dir", 0);
+		mType = (WidgetType)PlayerPrefs.GetInt("NGUI Widget Type", 0);
 
-		int color = EditorPrefs.GetInt("NGUI Color", -1);
-		if (color != -1) mColor = NGUIMath.IntToColor(color);
+		int atlasID = PlayerPrefs.GetInt("NGUI Atlas", -1);
+		if (atlasID != -1) mAtlas = EditorUtility.InstanceIDToObject(atlasID) as UIAtlas;
+
+		int fontID = PlayerPrefs.GetInt("NGUI Font", -1);
+		if (fontID != -1) mFont = EditorUtility.InstanceIDToObject(fontID) as UIFont;
 
 		mSprite		= LoadString("NGUI Sprite");
 		mSliced		= LoadString("NGUI Sliced");
@@ -142,9 +134,6 @@ public class UICreateWidgetWizard : EditorWindow
 		mListFG		= LoadString("NGUI ListFG");
 		mListBG		= LoadString("NGUI ListBG");
 		mListHL		= LoadString("NGUI ListHL");
-		mScrollBG	= LoadString("NGUI ScrollBG");
-		mScrollFG	= LoadString("NGUI ScrollFG");
-		mScrollCL	= EditorPrefs.GetBool("NGUI ScrollCL", true);
 	}
 
 	/// <summary>
@@ -153,8 +142,14 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void OnSelectAtlas (MonoBehaviour obj)
 	{
-		UISettings.atlas = obj as UIAtlas;
-		Repaint();
+		UIAtlas a = obj as UIAtlas;
+
+		if (mAtlas != a)
+		{
+			mAtlas = a;
+			Save();
+			Repaint();
+		}
 	}
 
 	/// <summary>
@@ -163,8 +158,14 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void OnSelectFont (MonoBehaviour obj)
 	{
-		UISettings.font = obj as UIFont;
-		Repaint();
+		UIFont f = obj as UIFont;
+
+		if (mFont != f)
+		{
+			mFont = f;
+			Save();
+			Repaint();
+		}
 	}
 
 	/// <summary>
@@ -186,7 +187,7 @@ public class UICreateWidgetWizard : EditorWindow
 
 		if (retVal && isValid)
 		{
-			NGUIEditorTools.RegisterUndo("Add a Widget");
+			Undo.RegisterSceneUndo("Add a Widget");
 			return true;
 		}
 		return false;
@@ -198,23 +199,11 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateLabel (GameObject go)
 	{
-		GUILayout.BeginHorizontal();
-		Color c = EditorGUILayout.ColorField("Color", mColor, GUILayout.Width(220f));
-		GUILayout.Label("Color tint the label will start with");
-		GUILayout.EndHorizontal();
-
-		if (mColor != c)
-		{
-			mColor = c;
-			Save();
-		}
-
-		if (ShouldCreate(go, UISettings.font != null))
+		if (ShouldCreate(go, mFont != null))
 		{
 			UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-			lbl.font = UISettings.font;
+			lbl.font = mFont;
 			lbl.text = "New Label";
-			lbl.color = mColor;
 			lbl.MakePixelPerfect();
 			Selection.activeGameObject = lbl.gameObject;
 		}
@@ -226,10 +215,10 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateSprite<T> (GameObject go, ref string field) where T : UISprite
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string sp = UISpriteInspector.SpriteField(UISettings.atlas, "Sprite", field, GUILayout.Width(200f));
+			string sp = UISpriteInspector.SpriteField(mAtlas, "Sprite", field, GUILayout.Width(200f));
 
 			if (!string.IsNullOrEmpty(sp))
 			{
@@ -245,11 +234,11 @@ public class UICreateWidgetWizard : EditorWindow
 			}
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null))
+		if (ShouldCreate(go, mAtlas != null))
 		{
 			T sprite = NGUITools.AddWidget<T>(go);
 			sprite.name = sprite.name + " (" + field + ")";
-			sprite.atlas = UISettings.atlas;
+			sprite.atlas = mAtlas;
 			sprite.spriteName = field;
 			sprite.MakePixelPerfect();
 			Selection.activeGameObject = sprite.gameObject;
@@ -275,34 +264,33 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateButton (GameObject go)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mButton, GUILayout.Width(200f));
+			string bg = UISpriteInspector.SpriteField(mAtlas, "Background", mButton, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sliced Sprite for the background");
 			GUILayout.EndHorizontal();
 			if (mButton != bg) { mButton = bg; Save(); }
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null))
+		if (ShouldCreate(go, mAtlas != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
 			go.name = "Button";
 
 			UISlicedSprite bg = NGUITools.AddWidget<UISlicedSprite>(go);
-			bg.name = "Background";
 			bg.depth = depth;
-			bg.atlas = UISettings.atlas;
+			bg.atlas = mAtlas;
 			bg.spriteName = mButton;
 			bg.transform.localScale = new Vector3(150f, 40f, 1f);
 			bg.MakePixelPerfect();
 
-			if (UISettings.font != null)
+			if (mFont != null)
 			{
 				UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-				lbl.font = UISettings.font;
+				lbl.font = mFont;
 				lbl.text = go.name;
 				lbl.MakePixelPerfect();
 			}
@@ -311,7 +299,7 @@ public class UICreateWidgetWizard : EditorWindow
 			NGUITools.AddWidgetCollider(go);
 
 			// Add the scripts
-			go.AddComponent<UIButton>().tweenTarget = bg.gameObject;
+			go.AddComponent<UIButtonColor>().tweenTarget = bg.gameObject;
 			go.AddComponent<UIButtonScale>();
 			go.AddComponent<UIButtonOffset>();
 			go.AddComponent<UIButtonSound>();
@@ -326,51 +314,50 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateImageButton (GameObject go)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Normal", mImage0, GUILayout.Width(200f));
+			string bg = UISpriteInspector.SpriteField(mAtlas, "Normal", mImage0, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Normal state sprite");
 			GUILayout.EndHorizontal();
 			if (mImage0 != bg) { mImage0 = bg; Save(); }
 
 			GUILayout.BeginHorizontal();
-			bg = UISpriteInspector.SpriteField(UISettings.atlas, "Hover", mImage1, GUILayout.Width(200f));
+			bg = UISpriteInspector.SpriteField(mAtlas, "Hover", mImage1, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Hover state sprite");
 			GUILayout.EndHorizontal();
 			if (mImage1 != bg) { mImage1 = bg; Save(); }
 
 			GUILayout.BeginHorizontal();
-			bg = UISpriteInspector.SpriteField(UISettings.atlas, "Pressed", mImage2, GUILayout.Width(200f));
+			bg = UISpriteInspector.SpriteField(mAtlas, "Pressed", mImage2, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Pressed state sprite");
 			GUILayout.EndHorizontal();
 			if (mImage2 != bg) { mImage2 = bg; Save(); }
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null))
+		if (ShouldCreate(go, mAtlas != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
 			go.name = "Image Button";
 
-			UIAtlas.Sprite sp = UISettings.atlas.GetSprite(mImage0);
+			UIAtlas.Sprite sp = mAtlas.GetSprite(mImage0);
 			UISprite sprite = (sp.inner == sp.outer) ? NGUITools.AddWidget<UISprite>(go) :
 				(UISprite)NGUITools.AddWidget<UISlicedSprite>(go);
 
-			sprite.name = "Background";
 			sprite.depth = depth;
-			sprite.atlas = UISettings.atlas;
+			sprite.atlas = mAtlas;
 			sprite.spriteName = mImage0;
 			sprite.transform.localScale = new Vector3(150f, 40f, 1f);
 			sprite.MakePixelPerfect();
 
-			if (UISettings.font != null)
+			if (mFont != null)
 			{
 				UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-				lbl.font = UISettings.font;
+				lbl.font = mFont;
 				lbl.text = go.name;
 				lbl.MakePixelPerfect();
 			}
@@ -396,16 +383,16 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateCheckbox (GameObject go)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mCheckBG, GUILayout.Width(200f));
+			string bg = UISpriteInspector.SpriteField(mAtlas, "Background", mCheckBG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sliced Sprite for the background");
 			GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
-			string ck = UISpriteInspector.SpriteField(UISettings.atlas, "Checkmark", mCheck, GUILayout.Width(200f));
+			string ck = UISpriteInspector.SpriteField(mAtlas, "Checkmark", mCheck, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sprite visible when the state is 'checked'");
 			GUILayout.EndHorizontal();
@@ -418,30 +405,28 @@ public class UICreateWidgetWizard : EditorWindow
 			}
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null))
+		if (ShouldCreate(go, mAtlas != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
 			go.name = "Checkbox";
 
 			UISlicedSprite bg = NGUITools.AddWidget<UISlicedSprite>(go);
-			bg.name = "Background";
 			bg.depth = depth;
-			bg.atlas = UISettings.atlas;
+			bg.atlas = mAtlas;
 			bg.spriteName = mCheckBG;
 			bg.transform.localScale = new Vector3(26f, 26f, 1f);
 			bg.MakePixelPerfect();
 
 			UISprite fg = NGUITools.AddWidget<UISprite>(go);
-			fg.name = "Checkmark";
-			fg.atlas = UISettings.atlas;
+			fg.atlas = mAtlas;
 			fg.spriteName = mCheck;
 			fg.MakePixelPerfect();
 
-			if (UISettings.font != null)
+			if (mFont != null)
 			{
 				UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-				lbl.font = UISettings.font;
+				lbl.font = mFont;
 				lbl.text = go.name;
 				lbl.pivot = UIWidget.Pivot.Left;
 				lbl.transform.localPosition = new Vector3(16f, 0f, 0f);
@@ -453,83 +438,10 @@ public class UICreateWidgetWizard : EditorWindow
 
 			// Add the scripts
 			go.AddComponent<UICheckbox>().checkSprite = fg;
-			go.AddComponent<UIButton>().tweenTarget = bg.gameObject;
+			go.AddComponent<UIButtonColor>().tweenTarget = bg.gameObject;
 			go.AddComponent<UIButtonScale>().tweenTarget = bg.transform;
 			go.AddComponent<UIButtonSound>();
 
-			Selection.activeGameObject = go;
-		}
-	}
-
-	/// <summary>
-	/// Scroll bar template.
-	/// </summary>
-
-	void CreateScrollBar (GameObject go)
-	{
-		if (UISettings.atlas != null)
-		{
-			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mScrollBG, GUILayout.Width(200f));
-			GUILayout.Space(20f);
-			GUILayout.Label("Sprite for the background");
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			string fg = UISpriteInspector.SpriteField(UISettings.atlas, "Foreground", mScrollFG, GUILayout.Width(200f));
-			GUILayout.Space(20f);
-			GUILayout.Label("Sprite for the foreground (thumb)");
-			GUILayout.EndHorizontal();
-
-			GUILayout.BeginHorizontal();
-			UIScrollBar.Direction dir = (UIScrollBar.Direction)EditorGUILayout.EnumPopup("Direction", mScrollDir, GUILayout.Width(200f));
-			GUILayout.Space(20f);
-			GUILayout.Label("Add colliders?", GUILayout.Width(80f));
-			bool draggable = EditorGUILayout.Toggle(mScrollCL);
-			GUILayout.EndHorizontal();
-
-			if (mScrollBG != bg || mScrollFG != fg || mScrollCL != draggable || mScrollDir != dir)
-			{
-				mScrollBG = bg;
-				mScrollFG = fg;
-				mScrollCL = draggable;
-				mScrollDir = dir;
-				Save();
-			}
-		}
-
-		if (ShouldCreate(go, UISettings.atlas != null))
-		{
-			int depth = NGUITools.CalculateNextDepth(go);
-			go = NGUITools.AddChild(go);
-			go.name = "Scroll Bar";
-
-			UISlicedSprite bg = NGUITools.AddWidget<UISlicedSprite>(go);
-			bg.name = "Background";
-			bg.depth = depth;
-			bg.atlas = UISettings.atlas;
-			bg.spriteName = mScrollBG;
-			bg.transform.localScale = new Vector3(400f + bg.border.x + bg.border.z, 14f + bg.border.y + bg.border.w, 1f);
-			bg.MakePixelPerfect();
-
-			UISlicedSprite fg = NGUITools.AddWidget<UISlicedSprite>(go);
-			fg.name = "Foreground";
-			fg.atlas = UISettings.atlas;
-			fg.spriteName = mScrollFG;
-
-			UIScrollBar sb = go.AddComponent<UIScrollBar>();
-			sb.background = bg;
-			sb.foreground = fg;
-			sb.direction = mScrollDir;
-			sb.barSize = 0.3f;
-			sb.scrollValue = 0.3f;
-			sb.ForceUpdate();
-
-			if (mScrollCL)
-			{
-				NGUITools.AddWidgetCollider(bg.gameObject);
-				NGUITools.AddWidgetCollider(fg.gameObject);
-			}
 			Selection.activeGameObject = go;
 		}
 	}
@@ -540,16 +452,16 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateSlider (GameObject go, bool slider)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mSliderBG, GUILayout.Width(200f));
+			string bg = UISpriteInspector.SpriteField(mAtlas, "Background", mSliderBG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sprite for the background (empty bar)");
 			GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
-			string fg = UISpriteInspector.SpriteField(UISettings.atlas, "Foreground", mSliderFG, GUILayout.Width(200f));
+			string fg = UISpriteInspector.SpriteField(mAtlas, "Foreground", mSliderFG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sprite for the foreground (full bar)");
 			GUILayout.EndHorizontal();
@@ -559,7 +471,7 @@ public class UICreateWidgetWizard : EditorWindow
 			if (slider)
 			{
 				GUILayout.BeginHorizontal();
-				tb = UISpriteInspector.SpriteField(UISettings.atlas, "Thumb", mSliderTB, GUILayout.Width(200f));
+				tb = UISpriteInspector.SpriteField(mAtlas, "Thumb", mSliderTB, GUILayout.Width(200f));
 				GUILayout.Space(20f);
 				GUILayout.Label("Sprite for the thumb indicator");
 				GUILayout.EndHorizontal();
@@ -574,14 +486,14 @@ public class UICreateWidgetWizard : EditorWindow
 			}
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null))
+		if (ShouldCreate(go, mAtlas != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
 			go.name = slider ? "Slider" : "Progress Bar";
 
 			// Background sprite
-			UIAtlas.Sprite bgs = UISettings.atlas.GetSprite(mSliderBG);
+			UIAtlas.Sprite bgs = mAtlas.GetSprite(mSliderBG);
 			UISprite back = (bgs.inner == bgs.outer) ?
 				(UISprite)NGUITools.AddWidget<UISprite>(go) :
 				(UISprite)NGUITools.AddWidget<UISlicedSprite>(go);
@@ -589,20 +501,20 @@ public class UICreateWidgetWizard : EditorWindow
 			back.name = "Background";
 			back.depth = depth;
 			back.pivot = UIWidget.Pivot.Left;
-			back.atlas = UISettings.atlas;
+			back.atlas = mAtlas;
 			back.spriteName = mSliderBG;
 			back.transform.localScale = new Vector3(200f, 30f, 1f);
 			back.MakePixelPerfect();
 
 			// Fireground sprite
-			UIAtlas.Sprite fgs = UISettings.atlas.GetSprite(mSliderFG);
+			UIAtlas.Sprite fgs = mAtlas.GetSprite(mSliderFG);
 			UISprite front = (fgs.inner == fgs.outer) ?
 				(UISprite)NGUITools.AddWidget<UIFilledSprite>(go) :
 				(UISprite)NGUITools.AddWidget<UISlicedSprite>(go);
 
 			front.name = "Foreground";
 			front.pivot = UIWidget.Pivot.Left;
-			front.atlas = UISettings.atlas;
+			front.atlas = mAtlas;
 			front.spriteName = mSliderFG;
 			front.transform.localScale = new Vector3(200f, 30f, 1f);
 			front.MakePixelPerfect();
@@ -613,18 +525,17 @@ public class UICreateWidgetWizard : EditorWindow
 			// Add the slider script
 			UISlider uiSlider = go.AddComponent<UISlider>();
 			uiSlider.foreground = front.transform;
-			uiSlider.fullSize = front.transform.localScale;
 
 			// Thumb sprite
 			if (slider)
 			{
-				UIAtlas.Sprite tbs = UISettings.atlas.GetSprite(mSliderTB);
+				UIAtlas.Sprite tbs = mAtlas.GetSprite(mSliderTB);
 				UISprite thb = (tbs.inner == tbs.outer) ?
 					(UISprite)NGUITools.AddWidget<UISprite>(go) :
 					(UISprite)NGUITools.AddWidget<UISlicedSprite>(go);
 
 				thb.name = "Thumb";
-				thb.atlas = UISettings.atlas;
+				thb.atlas = mAtlas;
 				thb.spriteName = mSliderTB;
 				thb.transform.localPosition = new Vector3(200f, 0f, 0f);
 				thb.transform.localScale = new Vector3(20f, 40f, 1f);
@@ -636,7 +547,6 @@ public class UICreateWidgetWizard : EditorWindow
 
 				uiSlider.thumb = thb.transform;
 			}
-			uiSlider.sliderValue = 0.75f;
 
 			// Select the slider
 			Selection.activeGameObject = go;
@@ -649,17 +559,17 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreateInput (GameObject go)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string bg = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mInputBG, GUILayout.Width(200f));
+			string bg = UISpriteInspector.SpriteField(mAtlas, "Background", mInputBG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sliced Sprite for the background");
 			GUILayout.EndHorizontal();
 			if (mInputBG != bg) { mInputBG = bg; Save(); }
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null && UISettings.font != null))
+		if (ShouldCreate(go, mAtlas != null && mFont != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
@@ -668,29 +578,28 @@ public class UICreateWidgetWizard : EditorWindow
 			float padding = 3f;
 
 			UISlicedSprite bg = NGUITools.AddWidget<UISlicedSprite>(go);
-			bg.name = "Background";
 			bg.depth = depth;
-			bg.atlas = UISettings.atlas;
+			bg.atlas = mAtlas;
 			bg.spriteName = mInputBG;
 			bg.pivot = UIWidget.Pivot.Left;
-			bg.transform.localScale = new Vector3(400f, UISettings.font.size + padding * 2f, 1f);
+			bg.transform.localScale = new Vector3(400f, mFont.size + padding * 2f, 1f);
 			bg.MakePixelPerfect();
 
 			UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-			lbl.font = UISettings.font;
+			lbl.font = mFont;
 			lbl.pivot = UIWidget.Pivot.Left;
 			lbl.transform.localPosition = new Vector3(padding, 0f, 0f);
 			lbl.multiLine = false;
 			lbl.supportEncoding = false;
-			lbl.lineWidth = Mathf.RoundToInt(400f - padding * 2f);
+			lbl.lineWidth = 400f - padding * 2f;
 			lbl.text = "You can type here";
 			lbl.MakePixelPerfect();
 
 			// Add a collider to the background
-			NGUITools.AddWidgetCollider(go);
+			NGUITools.AddWidgetCollider(bg.gameObject);
 
 			// Add an input script to the background and have it point to the label
-			UIInput input = go.AddComponent<UIInput>();
+			UIInput input = bg.gameObject.AddComponent<UIInput>();
 			input.label = lbl;
 
 			// Update the selection
@@ -704,61 +613,53 @@ public class UICreateWidgetWizard : EditorWindow
 
 	void CreatePopup (GameObject go, bool isDropDown)
 	{
-		if (UISettings.atlas != null)
+		if (mAtlas != null)
 		{
 			GUILayout.BeginHorizontal();
-			string sprite = UISpriteInspector.SpriteField(UISettings.atlas, "Foreground", mListFG, GUILayout.Width(200f));
+			string sprite = UISpriteInspector.SpriteField(mAtlas, "Foreground", mListFG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Foreground sprite (shown on the button)");
 			GUILayout.EndHorizontal();
 			if (mListFG != sprite) { mListFG = sprite; Save(); }
 
 			GUILayout.BeginHorizontal();
-			sprite = UISpriteInspector.SpriteField(UISettings.atlas, "Background", mListBG, GUILayout.Width(200f));
+			sprite = UISpriteInspector.SpriteField(mAtlas, "Background", mListBG, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Background sprite (envelops the options)");
 			GUILayout.EndHorizontal();
 			if (mListBG != sprite) { mListBG = sprite; Save(); }
 
 			GUILayout.BeginHorizontal();
-			sprite = UISpriteInspector.SpriteField(UISettings.atlas, "Highlight", mListHL, GUILayout.Width(200f));
+			sprite = UISpriteInspector.SpriteField(mAtlas, "Highlight", mListHL, GUILayout.Width(200f));
 			GUILayout.Space(20f);
 			GUILayout.Label("Sprite used to highlight the selected option");
 			GUILayout.EndHorizontal();
 			if (mListHL != sprite) { mListHL = sprite; Save(); }
 		}
 
-		if (ShouldCreate(go, UISettings.atlas != null && UISettings.font != null))
+		if (ShouldCreate(go, mAtlas != null && mFont != null))
 		{
 			int depth = NGUITools.CalculateNextDepth(go);
 			go = NGUITools.AddChild(go);
 			go.name = isDropDown ? "Popup List" : "Popup Menu";
 
-			UIAtlas.Sprite sphl = UISettings.atlas.GetSprite(mListHL);
-			UIAtlas.Sprite spfg = UISettings.atlas.GetSprite(mListFG);
-
-			Vector2 hlPadding = new Vector2(
-				Mathf.Max(4f, sphl.inner.xMin - sphl.outer.xMin),
-				Mathf.Max(4f, sphl.inner.yMin - sphl.outer.yMin));
-
-			Vector2 fgPadding = new Vector2(
-				Mathf.Max(4f, spfg.inner.xMin - spfg.outer.xMin),
-				Mathf.Max(4f, spfg.inner.yMin - spfg.outer.yMin));
-
 			// Background sprite
-			UIBaseSprite sprite = NGUITools.AddSprite(go, UISettings.atlas, mListFG);
+			UISprite sprite = NGUITools.AddSprite(go, mAtlas, mListFG);
 			sprite.depth = depth;
-			sprite.atlas = UISettings.atlas;
-			sprite.transform.localScale = new Vector3(150f + fgPadding.x * 2f, UISettings.font.size + fgPadding.y * 2f, 1f);
+			sprite.atlas = mAtlas;
+			sprite.transform.localScale = new Vector3(150f, 34f, 1f);
 			sprite.pivot = UIWidget.Pivot.Left;
 			sprite.MakePixelPerfect();
 
+			UIAtlas.Sprite sp = mAtlas.GetSprite(mListFG);
+			float padding = Mathf.Max(4f, sp.inner.xMin - sp.outer.xMin);
+
 			// Text label
 			UILabel lbl = NGUITools.AddWidget<UILabel>(go);
-			lbl.font = UISettings.font;
+			lbl.font = mFont;
 			lbl.text = go.name;
 			lbl.pivot = UIWidget.Pivot.Left;
-			lbl.cachedTransform.localPosition = new Vector3(fgPadding.x, 0f, 0f);
+			lbl.cachedTransform.localPosition = new Vector3(padding, 0f, 0f);
 			lbl.MakePixelPerfect();
 
 			// Add a collider
@@ -766,16 +667,16 @@ public class UICreateWidgetWizard : EditorWindow
 
 			// Add the popup list
 			UIPopupList list = go.AddComponent<UIPopupList>();
-			list.atlas = UISettings.atlas;
-			list.font = UISettings.font;
+			list.atlas = mAtlas;
+			list.font = mFont;
 			list.backgroundSprite = mListBG;
 			list.highlightSprite = mListHL;
-			list.padding = hlPadding;
+			list.padding = new Vector2(padding, Mathf.RoundToInt(padding * 0.5f));
 			if (isDropDown) list.textLabel = lbl;
 			for (int i = 0; i < 5; ++i) list.items.Add(isDropDown ? ("List Option " + i) : ("Menu Option " + i));
 
 			// Add the scripts
-			go.AddComponent<UIButton>().tweenTarget = sprite.gameObject;
+			go.AddComponent<UIButtonColor>().tweenTarget = sprite.gameObject;
 			go.AddComponent<UIButtonSound>();
 
 			Selection.activeGameObject = go;
@@ -814,12 +715,12 @@ public class UICreateWidgetWizard : EditorWindow
 			GUILayout.Space(4f);
 
 			GUILayout.BeginHorizontal();
-			ComponentSelector.Draw<UIAtlas>(UISettings.atlas, OnSelectAtlas, GUILayout.Width(140f));
+			ComponentSelector.Draw<UIAtlas>(mAtlas, OnSelectAtlas, GUILayout.Width(140f));
 			GUILayout.Label("Texture atlas used by widgets", GUILayout.MinWidth(10000f));
 			GUILayout.EndHorizontal();
 
 			GUILayout.BeginHorizontal();
-			ComponentSelector.Draw<UIFont>(UISettings.font, OnSelectFont, GUILayout.Width(140f));
+			ComponentSelector.Draw<UIFont>(mFont, OnSelectFont, GUILayout.Width(140f));
 			GUILayout.Label("Font used by labels", GUILayout.MinWidth(10000f));
 			GUILayout.EndHorizontal();
 
@@ -850,7 +751,6 @@ public class UICreateWidgetWizard : EditorWindow
 				case WidgetType.Input:			CreateInput(go); break;
 				case WidgetType.PopupList:		CreatePopup(go, true); break;
 				case WidgetType.PopupMenu:		CreatePopup(go, false); break;
-				case WidgetType.ScrollBar:		CreateScrollBar(go); break;
 			}
 		}
 	}

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -63,7 +58,7 @@ public class UICreateNewUIWizard : EditorWindow
 
 	void CreateNewUI ()
 	{
-		NGUIEditorTools.RegisterUndo("Create New UI");
+		Undo.RegisterSceneUndo("Create New UI");
 
 		// Root for the UI
 		GameObject root = null;
@@ -71,17 +66,15 @@ public class UICreateNewUIWizard : EditorWindow
 		if (camType == CameraType.Simple2D)
 		{
 			root = new GameObject("UI Root (2D)");
-			root.AddComponent<UIRoot>();
 		}
 		else
 		{
 			root = new GameObject((camType == CameraType.Advanced3D) ? "UI Root (3D)" : "UI Root");
 			root.transform.localScale = new Vector3(0.0025f, 0.0025f, 0.0025f);
-
-			UIRoot uiRoot = root.AddComponent<UIRoot>();
-			uiRoot.automatic = false;
-			uiRoot.manualHeight = 800;
 		}
+
+		// Each UI should start off with a root
+		root.AddComponent<UIRoot>();
 
 		// Assign the layer to be used by everything
 		root.layer = layer;
@@ -99,11 +92,14 @@ public class UICreateNewUIWizard : EditorWindow
 			float depth = -1f;
 			bool clearColor = true;
 			bool audioListener = true;
-
-			List<Camera> cameras = NGUIEditorTools.FindInScene<Camera>();
+			Camera[] cameras = Resources.FindObjectsOfTypeAll(typeof(Camera)) as Camera[];
 
 			foreach (Camera c in cameras)
 			{
+				if (!c.gameObject.active) continue;
+				if (c.name == "Preview Camera") continue;
+				if (c.name == "SceneCamera") continue;
+
 				// Choose the maximum depth
 				depth = Mathf.Max(depth, c.depth);
 
@@ -134,11 +130,11 @@ public class UICreateNewUIWizard : EditorWindow
 			{
 				cam.nearClipPlane = 0.1f;
 				cam.farClipPlane = 4f;
-				cam.transform.localPosition = new Vector3(0f, 0f, -1.7f);
+				cam.transform.localPosition = new Vector3(0f, 0f, -700f);
 			}
 
 			// We don't want to clear color if this is not the first camera
-			if (cameras.Count > 0) cam.clearFlags = clearColor ? CameraClearFlags.Skybox : CameraClearFlags.Depth;
+			if (cameras.Length > 0) cam.clearFlags = clearColor ? CameraClearFlags.Skybox : CameraClearFlags.Depth;
 
 			// Add an audio listener if we need one
 			if (audioListener) cam.gameObject.AddComponent<AudioListener>();
@@ -150,8 +146,8 @@ public class UICreateNewUIWizard : EditorWindow
 			UIAnchor anchor = NGUITools.AddChild<UIAnchor>(cam.gameObject);
 			anchor.uiCamera = cam;
 
-			// Since the camera was brought back 700 units above, we should bring the anchor forward to compensate
-			if (camType == CameraType.Advanced3D) anchor.depthOffset = 1.7f;
+			// Since the camera was brought back 700 units above, we should bring the anchor forward 700 to compensate
+			if (camType == CameraType.Advanced3D) anchor.depthOffset = 700f;
 
 			// And finally -- the first UI panel
 			UIPanel panel = NGUITools.AddChild<UIPanel>(anchor.gameObject);
