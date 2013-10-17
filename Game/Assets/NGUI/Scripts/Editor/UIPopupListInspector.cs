@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -16,20 +11,15 @@ public class UIPopupListInspector : Editor
 {
 	UIPopupList mList;
 
-	void RegisterUndo ()
-	{
-		NGUIEditorTools.RegisterUndo("Popup List Change", mList);
-	}
-
 	void OnSelectAtlas (MonoBehaviour obj)
 	{
-		RegisterUndo();
+		Undo.RegisterUndo(mList, "Popup List Change");
 		mList.atlas = obj as UIAtlas;
 	}
 	
 	void OnSelectFont (MonoBehaviour obj)
 	{
-		RegisterUndo();
+		Undo.RegisterUndo(mList, "Popup List Change");
 		mList.font = obj as UIFont;
 	}
 
@@ -45,7 +35,7 @@ public class UIPopupListInspector : Editor
 
 		if (mList.textLabel != lbl)
 		{
-			RegisterUndo();
+			Undo.RegisterUndo(mList, "Popup List Change");
 			mList.textLabel = lbl;
 			if (lbl != null) lbl.text = mList.selection;
 		}
@@ -57,7 +47,7 @@ public class UIPopupListInspector : Editor
 
 			if (mList.backgroundSprite != bg || mList.highlightSprite != hl)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				mList.backgroundSprite = bg;
 				mList.highlightSprite = hl;
 			}
@@ -78,7 +68,7 @@ public class UIPopupListInspector : Editor
 
 			if (modified != text)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				string[] split = modified.Split(new char[] { '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
 				mList.items.Clear();
 				foreach (string s in split) mList.items.Add(s);
@@ -93,41 +83,27 @@ public class UIPopupListInspector : Editor
 
 			if (mList.selection != sel)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				mList.selection = sel;
-			}
-
-			UIPopupList.Position pos = (UIPopupList.Position)EditorGUILayout.EnumPopup("Position", mList.position);
-
-			if (mList.position != pos)
-			{
-				RegisterUndo();
-				mList.position = pos;
 			}
 
 			float ts = EditorGUILayout.FloatField("Text Scale", mList.textScale);
 			Color tc = EditorGUILayout.ColorField("Text Color", mList.textColor);
 			Color bc = EditorGUILayout.ColorField("Background", mList.backgroundColor);
 			Color hc = EditorGUILayout.ColorField("Highlight", mList.highlightColor);
-
-			GUILayout.BeginHorizontal();
-			bool isLocalized = EditorGUILayout.Toggle("Localized", mList.isLocalized, GUILayout.Width(100f));
 			bool isAnimated = EditorGUILayout.Toggle("Animated", mList.isAnimated);
-			GUILayout.EndHorizontal();
 
 			if (mList.textScale != ts ||
 				mList.textColor != tc ||
 				mList.highlightColor != hc ||
 				mList.backgroundColor != bc ||
-				mList.isLocalized != isLocalized ||
 				mList.isAnimated != isAnimated)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				mList.textScale = ts;
 				mList.textColor = tc;
 				mList.backgroundColor = bc;
 				mList.highlightColor = hc;
-				mList.isLocalized = isLocalized;
 				mList.isAnimated = isAnimated;
 			}
 
@@ -144,7 +120,7 @@ public class UIPopupListInspector : Editor
 			
 			if (mList.padding != padding)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				mList.padding = padding;
 			}
 
@@ -157,7 +133,7 @@ public class UIPopupListInspector : Editor
 
 			if (mList.eventReceiver != go || mList.functionName != fn)
 			{
-				RegisterUndo();
+				Undo.RegisterUndo(mList, "Popup List Change");
 				mList.eventReceiver = go;
 				mList.functionName = fn;
 			}

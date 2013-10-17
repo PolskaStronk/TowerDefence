@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 
@@ -14,18 +9,24 @@ using UnityEditor;
 public class UIWidgetInspector : Editor
 {
 	protected UIWidget mWidget;
+	protected bool mRegisteredUndo = false;
+	static protected bool mShowTexture = true;
 	static protected bool mUseShader = false;
 
 	bool mInitialized = false;
-	protected bool mAllowPreview = true;
+	bool mHierarchyCheck = true;
 
 	/// <summary>
 	/// Register an Undo command with the Unity editor.
 	/// </summary>
 
-	void RegisterUndo()
+	protected void RegisterUndo()
 	{
-		NGUIEditorTools.RegisterUndo("Widget Change", mWidget);
+		if (!mRegisteredUndo)
+		{
+			mRegisteredUndo = true;
+			Undo.RegisterUndo(mWidget, "Widget Change");
+		}
 	}
 
 	/// <summary>
@@ -37,19 +38,41 @@ public class UIWidgetInspector : Editor
 		EditorGUIUtility.LookLikeControls(80f);
 		mWidget = target as UIWidget;
 
-		if (!mInitialized)
+#if UNITY_3_4
+		PrefabType type = EditorUtility.GetPrefabType(mWidget.gameObject);
+#else
+		PrefabType type = PrefabUtility.GetPrefabType(mWidget.gameObject);
+#endif
+
+		if (type == PrefabType.Prefab)
 		{
-			mInitialized = true;
-			OnInit();
+			GUILayout.Label("Drag this widget into the scene to modify it.");
 		}
-
-		NGUIEditorTools.DrawSeparator();
-
-		// Check to see if we can draw the widget's default properties to begin with
-		if (OnDrawProperties())
+		else
 		{
-			// Draw all common properties next
-			DrawCommonProperties();
+			if (!mInitialized)
+			{
+				mInitialized = true;
+				OnInit();
+			}
+
+			NGUIEditorTools.DrawSeparator();
+
+			// Check the hierarchy to ensure that this widget is not parented to another widget
+			if (mHierarchyCheck) CheckHierarchy();
+
+			// This flag gets set to 'true' if RegisterUndo() gets called
+			mRegisteredUndo = false;
+
+			// Check to see if we can draw the widget's default properties to begin with
+			if (OnDrawProperties())
+			{
+				// Draw all common properties next
+				DrawCommonProperties();
+			}
+
+			// Update the widget's properties if something has changed
+			if (mRegisteredUndo) mWidget.MarkAsChanged();
 		}
 	}
 
@@ -59,74 +82,87 @@ public class UIWidgetInspector : Editor
 
 	protected void DrawCommonProperties ()
 	{
-#if UNITY_3_4
-		PrefabType type = EditorUtility.GetPrefabType(mWidget.gameObject);
-#else
-		PrefabType type = PrefabUtility.GetPrefabType(mWidget.gameObject);
-#endif
-
 		NGUIEditorTools.DrawSeparator();
 
 		// Depth navigation
-		if (type != PrefabType.Prefab)
+		GUILayout.BeginHorizontal();
 		{
-			GUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Depth");
+
+			int depth = mWidget.depth;
+			if (GUILayout.Button("Back")) --depth;
+			depth = EditorGUILayout.IntField(depth, GUILayout.Width(40f));
+			if (GUILayout.Button("Forward")) ++depth;
+
+			if (mWidget.depth != depth)
 			{
-				EditorGUILayout.PrefixLabel("Depth");
-
-				int depth = mWidget.depth;
-				if (GUILayout.Button("Back")) --depth;
-				depth = EditorGUILayout.IntField(depth, GUILayout.Width(40f));
-				if (GUILayout.Button("Forward")) ++depth;
-
-				if (mWidget.depth != depth)
-				{
-					NGUIEditorTools.RegisterUndo("Depth Change", mWidget);
-					mWidget.depth = depth;
-				}
+				Undo.RegisterUndo(mWidget, "Depth Change");
+				mWidget.depth = depth;
+				EditorUtility.SetDirty(mWidget.gameObject);
 			}
-			GUILayout.EndHorizontal();
+
+			// NOTE: Experimental code that swaps depth layers and updates the colliders on depth change.
+			/*if (GUILayout.Button("Back"))
+			{
+				Undo.RegisterSceneUndo("Depth Change");
+				mWidget.panel.SwapDepth(mWidget.depth, mWidget.depth - 1);
+			}
+
+			int depth = EditorGUILayout.IntField(mWidget.depth, GUILayout.Width(40f));
+
+			if (mWidget.depth != depth)
+			{
+				Undo.RegisterSceneUndo("Depth Change");
+				mWidget.depth = depth;
+				EditorUtility.SetDirty(mWidget.gameObject);
+			}
+
+			if (GUILayout.Button("Forward"))
+			{
+				Undo.RegisterSceneUndo("Depth Change");
+				mWidget.panel.SwapDepth(mWidget.depth, mWidget.depth + 1);
+			}*/
 		}
+		GUILayout.EndHorizontal();
 
 		Color color = EditorGUILayout.ColorField("Color Tint", mWidget.color);
 
 		if (mWidget.color != color)
 		{
-			NGUIEditorTools.RegisterUndo("Color Change", mWidget);
+			Undo.RegisterUndo(mWidget, "Color Change");
 			mWidget.color = color;
+			EditorUtility.SetDirty(mWidget.gameObject);
 		}
 
-		// Depth navigation
-		if (type != PrefabType.Prefab)
+		GUILayout.BeginHorizontal();
 		{
-			GUILayout.BeginHorizontal();
-			{
-				EditorGUILayout.PrefixLabel("Correction");
+			EditorGUILayout.PrefixLabel("Correction");
 
-				if (GUILayout.Button("Make Pixel-Perfect"))
-				{
-					NGUIEditorTools.RegisterUndo("Make Pixel-Perfect", mWidget.transform);
-					mWidget.MakePixelPerfect();
-				}
+			if (GUILayout.Button("Make Pixel-Perfect"))
+			{
+				Undo.RegisterUndo(mWidget.transform, "Make Pixel-Perfect");
+				mWidget.MakePixelPerfect();
+				EditorUtility.SetDirty(mWidget.transform);
 			}
-			GUILayout.EndHorizontal();
 		}
+		GUILayout.EndHorizontal();
 
 		UIWidget.Pivot pivot = (UIWidget.Pivot)EditorGUILayout.EnumPopup("Pivot", mWidget.pivot);
 
 		if (mWidget.pivot != pivot)
 		{
-			NGUIEditorTools.RegisterUndo("Pivot Change", mWidget);
+			Undo.RegisterUndo(mWidget, "Pivot Change");
 			mWidget.pivot = pivot;
+			EditorUtility.SetDirty(mWidget.gameObject);
 		}
 
-		if (mAllowPreview && mWidget.mainTexture != null)
+		if (mWidget.mainTexture != null)
 		{
 			GUILayout.BeginHorizontal();
 			{
-				UISettings.texturePreview = EditorGUILayout.Toggle("Preview", UISettings.texturePreview, GUILayout.Width(100f));
+				mShowTexture = EditorGUILayout.Toggle("Preview", mShowTexture, GUILayout.Width(100f));
 
-				/*if (UISettings.texturePreview)
+				if (mShowTexture)
 				{
 					if (mUseShader != EditorGUILayout.Toggle("Use Shader", mUseShader))
 					{
@@ -139,12 +175,50 @@ public class UIWidgetInspector : Editor
 								"Until it's fixed by Unity, your texture may spill onto the rest of the Unity's GUI while using this mode.");
 						}
 					}
-				}*/
+				}
 			}
 			GUILayout.EndHorizontal();
 
 			// Draw the texture last
-			if (UISettings.texturePreview) OnDrawTexture();
+			if (mShowTexture) OnDrawTexture();
+		}
+	}
+
+	/// <summary>
+	/// Check the hierarchy to ensure that this widget is not parented to another widget.
+	/// </summary>
+ 
+	void CheckHierarchy()
+	{
+		mHierarchyCheck = false;
+		Transform trans = mWidget.transform.parent;
+		if (trans == null) return;
+		Vector3 scale = trans.lossyScale;
+
+		if (Mathf.Abs(scale.x - scale.y) > 0.001f || Mathf.Abs(scale.y - scale.x) > 0.001f)
+		{
+			UIAnchor anch = trans.GetComponent<UIAnchor>();
+
+			if (anch == null || !anch.stretchToFill)
+			{
+				Debug.LogWarning("Parent of " + NGUITools.GetHierarchy(mWidget.gameObject) + " does not have a uniform absolute scale.\n" +
+					"Consider re-parenting to a uniformly-scaled game object instead.");
+
+				// If the warning above gets triggered, it means that the widget's parent does not have a uniform scale.
+				// This may lead to strangeness when scaling or rotating the widget. Consider this hierarchy:
+
+				// Widget #1
+				//  |
+				//  +- Widget #2
+
+				// You can change it to this, solving the problem:
+
+				// GameObject (scale 1, 1, 1)
+				//  |
+				//  +- Widget #1
+				//  |
+				//  +- Widget #2
+			}
 		}
 	}
 

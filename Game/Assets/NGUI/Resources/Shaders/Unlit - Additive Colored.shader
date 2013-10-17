@@ -18,7 +18,7 @@ Shader "Unlit/Additive Colored"
 		Cull Off
 		Lighting Off
 		ZWrite Off
-		Fog { Mode Off }
+		Fog { Color (0,0,0,0) }
 		ColorMask RGB
 		AlphaTest Greater .01
 		Blend One One

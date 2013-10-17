@@ -1,16 +1,11 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Tween the object's color.
 /// </summary>
 
 [AddComponentMenu("NGUI/Tween/Color")]
-public class TweenColor : UITweener
+public class TweenColor : NTweener
 {
 	public Color from = Color.white;
 	public Color to = Color.white;
@@ -52,7 +47,7 @@ public class TweenColor : UITweener
 
 	void Awake ()
 	{
-		mWidget = GetComponentInChildren<UIWidget>();
+		mWidget = GetComponent<UIWidget>();
 		Renderer ren = renderer;
 		if (ren != null) mMat = ren.material;
 		mLight = light;
@@ -70,7 +65,7 @@ public class TweenColor : UITweener
 
 	static public TweenColor Begin (GameObject go, float duration, Color color)
 	{
-		TweenColor comp = UITweener.Begin<TweenColor>(go, duration);
+		TweenColor comp = NTweener.Begin<TweenColor>(go, duration);
 		comp.from = comp.color;
 		comp.to = color;
 		return comp;

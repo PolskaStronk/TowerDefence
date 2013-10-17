@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -22,46 +17,11 @@ public class UIPanelInspector : Editor
 
 		NGUIEditorTools.DrawSeparator();
 
-		if (panel.showInPanelTool != EditorGUILayout.Toggle("Panel Tool", panel.showInPanelTool))
-		{
-			panel.showInPanelTool = !panel.showInPanelTool;
-			EditorUtility.SetDirty(panel);
-			EditorWindow.FocusWindowIfItsOpen<UIPanelTool>();
-		}
-
-		GUILayout.BeginHorizontal();
-		bool norms = EditorGUILayout.Toggle("Normals", panel.generateNormals, GUILayout.Width(100f));
-		GUILayout.Label("Needed for lit shaders");
-		GUILayout.EndHorizontal();
+		bool norms = EditorGUILayout.Toggle("Normals", panel.generateNormals);
 
 		if (panel.generateNormals != norms)
 		{
 			panel.generateNormals = norms;
-			panel.UpdateDrawcalls();
-			EditorUtility.SetDirty(panel);
-		}
-
-		GUILayout.BeginHorizontal();
-		bool depth = EditorGUILayout.Toggle("Depth Pass", panel.depthPass, GUILayout.Width(100f));
-		GUILayout.Label("Extra draw call, saves fillrate");
-		GUILayout.EndHorizontal();
-
-		if (panel.depthPass != depth)
-		{
-			panel.depthPass = depth;
-			panel.UpdateDrawcalls();
-			EditorUtility.SetDirty(panel);
-		}
-
-		GUILayout.BeginHorizontal();
-		bool stat = EditorGUILayout.Toggle("Static", panel.widgetsAreStatic, GUILayout.Width(100f));
-		GUILayout.Label("Check if widgets won't move");
-		GUILayout.EndHorizontal();
-
-		if (panel.widgetsAreStatic != stat)
-		{
-			panel.widgetsAreStatic = stat;
-			panel.UpdateDrawcalls();
 			EditorUtility.SetDirty(panel);
 		}
 
@@ -108,7 +68,7 @@ public class UIPanelInspector : Editor
 
 			if (panel.clipRange != range)
 			{
-				NGUIEditorTools.RegisterUndo("Clipping Change", panel);
+				Undo.RegisterUndo(panel, "Clipping Change");
 				panel.clipRange = range;
 				EditorUtility.SetDirty(panel);
 			}
@@ -125,7 +85,7 @@ public class UIPanelInspector : Editor
 
 				if (panel.clipSoftness != soft)
 				{
-					NGUIEditorTools.RegisterUndo("Clipping Change", panel);
+					Undo.RegisterUndo(panel, "Clipping Change");
 					panel.clipSoftness = soft;
 					EditorUtility.SetDirty(panel);
 				}

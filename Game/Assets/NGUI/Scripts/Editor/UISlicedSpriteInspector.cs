@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 
@@ -26,7 +21,7 @@ public class UISlicedSpriteInspector : UISpriteInspector
 
 			if (sp.fillCenter != fill)
 			{
-				NGUIEditorTools.RegisterUndo("Sprite Change", sp);
+				Undo.RegisterUndo(sp, "Sprite Change");
 				sp.fillCenter = fill;
 				EditorUtility.SetDirty(sp.gameObject);
 			}
@@ -48,7 +43,7 @@ public class UISlicedSpriteInspector : UISpriteInspector
 		{
 			// Draw the atlas
 			EditorGUILayout.Separator();
-			Rect rect = NGUIEditorTools.DrawSprite(tex, sprite.outerUV, mUseShader ? mSprite.atlas.spriteMaterial : null);
+			Rect rect = NGUIEditorTools.DrawSprite(tex, sprite.outerUV, mUseShader ? mSprite.atlas.material : null);
 
 			// Draw the selection
 			NGUIEditorTools.DrawOutline(rect, sprite.outerUV, sprite.innerUV);

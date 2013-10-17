@@ -1,14 +1,8 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
 /// All children added to the game object with this script will be repositioned to be on a grid of specified dimensions.
-/// If you want the cells to automatically set their scale based on the dimensions of their content, take a look at UITable.
 /// </summary>
 
 [ExecuteInEditMode]
@@ -29,11 +23,8 @@ public class UIGrid : MonoBehaviour
 	public bool sorted = false;
 	public bool hideInactive = true;
 
-	bool mStarted = false;
-
 	void Start ()
 	{
-		mStarted = true;
 		Reposition();
 	}
 
@@ -48,18 +39,8 @@ public class UIGrid : MonoBehaviour
 
 	static public int SortByName (Transform a, Transform b) { return string.Compare(a.name, b.name); }
 
-	/// <summary>
-	/// Recalculate the position of all elements within the grid, sorting them alphabetically if necessary.
-	/// </summary>
-
 	public void Reposition ()
 	{
-		if (!mStarted)
-		{
-			repositionNow = true;
-			return;
-		}
-
 		Transform myTrans = transform;
 
 		int x = 0;
@@ -69,22 +50,16 @@ public class UIGrid : MonoBehaviour
 		{
 			List<Transform> list = new List<Transform>();
 
-			for (int i = 0; i < myTrans.childCount; ++i)
-			{
-				Transform t = myTrans.GetChild(i);
-				if (t) list.Add(t);
-			}
+			for (int i = 0; i < myTrans.childCount; ++i) list.Add(myTrans.GetChild(i));
 			list.Sort(SortByName);
 
-			for (int i = 0, imax = list.Count; i < imax; ++i)
+			foreach (Transform t in list)
 			{
-				Transform t = list[i];
 				if (!t.gameObject.active && hideInactive) continue;
 
-				float depth = t.localPosition.z;
 				t.localPosition = (arrangement == Arrangement.Horizontal) ?
-					new Vector3(cellWidth * x, -cellHeight * y, depth) :
-					new Vector3(cellWidth * y, -cellHeight * x, depth);
+					new Vector3(cellWidth * x, -cellHeight * y, 0f) :
+					new Vector3(cellWidth * y, -cellHeight * x, 0f);
 
 				if (++x >= maxPerLine && maxPerLine > 0)
 				{
@@ -101,10 +76,9 @@ public class UIGrid : MonoBehaviour
 
 				if (!t.gameObject.active && hideInactive) continue;
 
-				float depth = t.localPosition.z;
 				t.localPosition = (arrangement == Arrangement.Horizontal) ?
-					new Vector3(cellWidth * x, -cellHeight * y, depth) :
-					new Vector3(cellWidth * y, -cellHeight * x, depth);
+					new Vector3(cellWidth * x, -cellHeight * y, 0f) :
+					new Vector3(cellWidth * y, -cellHeight * x, 0f);
 
 				if (++x >= maxPerLine && maxPerLine > 0)
 				{
@@ -113,8 +87,5 @@ public class UIGrid : MonoBehaviour
 				}
 			}
 		}
-
-		UIDraggablePanel drag = NGUITools.FindInParents<UIDraggablePanel>(gameObject);
-		if (drag != null) drag.UpdateScrollbars(true);
 	}
 }

@@ -7,8 +7,6 @@ Shader "Unlit/Transparent Colored Overlay"
 	
 	SubShader
 	{
-		LOD 100
-
 		Tags
 		{
 			"Queue" = "Transparent+1"
@@ -16,17 +14,17 @@ Shader "Unlit/Transparent Colored Overlay"
 			"RenderType" = "Transparent"
 		}
 		
+		LOD 100
+		Cull Off
+		Lighting Off
+		ZWrite Off
+		Fog { Color (0,0,0,0) }
+		ColorMask RGB
+		AlphaTest Greater .01
+		Blend SrcAlpha OneMinusSrcAlpha
+		
 		Pass
 		{
-			Cull Off
-			Lighting Off
-			ZWrite Off
-			Offset -1, -1
-			Fog { Mode Off }
-			ColorMask RGB
-			AlphaTest Greater .01
-			Blend SrcAlpha OneMinusSrcAlpha
-
 			ColorMaterial AmbientAndDiffuse
 			
 			SetTexture [_MainTex]

@@ -1,28 +1,24 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Tween the object's rotation.
 /// </summary>
 
 [AddComponentMenu("NGUI/Tween/Rotation")]
-public class TweenRotation : UITweener
+public class TweenRotation : NTweener
 {
 	public Vector3 from;
 	public Vector3 to;
 
 	Transform mTrans;
 
-	public Transform cachedTransform { get { if (mTrans == null) mTrans = transform; return mTrans; } }
-	public Quaternion rotation { get { return cachedTransform.localRotation; } set { cachedTransform.localRotation = value; } }
+	public Quaternion rotation { get { return mTrans.localRotation; } set { mTrans.localRotation = value; } }
+
+	void Awake () { mTrans = transform; }
 
 	override protected void OnUpdate (float factor)
 	{
-		cachedTransform.localRotation = Quaternion.Slerp(Quaternion.Euler(from), Quaternion.Euler(to), factor);
+		mTrans.localRotation = Quaternion.Slerp(Quaternion.Euler(from), Quaternion.Euler(to), factor);
 	}
 
 	/// <summary>
@@ -31,7 +27,7 @@ public class TweenRotation : UITweener
 
 	static public TweenRotation Begin (GameObject go, float duration, Quaternion rot)
 	{
-		TweenRotation comp = UITweener.Begin<TweenRotation>(go, duration);
+		TweenRotation comp = NTweener.Begin<TweenRotation>(go, duration);
 		comp.from = comp.rotation.eulerAngles;
 		comp.to = rot.eulerAngles;
 		return comp;

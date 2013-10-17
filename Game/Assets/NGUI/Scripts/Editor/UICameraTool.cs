@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -156,7 +151,21 @@ public class UICameraTool : EditorWindow
 	{
 		EditorGUIUtility.LookLikeControls(80f);
 
-		List<Camera> list = NGUIEditorTools.FindInScene<Camera>();
+		Camera[] cams = Resources.FindObjectsOfTypeAll(typeof(Camera)) as Camera[];
+		List<Camera> list = new List<Camera>();
+
+		foreach (Camera c in cams)
+		{
+			if (c.name != "SceneCamera" && c.name != "Preview Camera")
+			{
+#if UNITY_3_4
+				PrefabType type = EditorUtility.GetPrefabType(c.gameObject);
+#else
+				PrefabType type = PrefabUtility.GetPrefabType(c.gameObject);
+#endif
+				if (type != PrefabType.Prefab) list.Add(c);
+			}
+		}
 
 		if (list.Count > 0)
 		{
@@ -211,35 +220,14 @@ public class UICameraTool : EditorWindow
 				GUI.color = highlight ? new Color(0f, 0.5f, 0.8f) : Color.grey;
 			}
 
-			string camName, camLayer;
-
-			if (cam == null)
-			{
-				camName = "Camera's Name";
-				camLayer = "Layer";
-			}
-			else
-			{
-				camName = cam.name + (cam.orthographic ? " (2D)" : " (3D)");
-				camLayer = LayerMask.LayerToName(cam.gameObject.layer);
-			}
-
-#if UNITY_3_4
-			if (GUILayout.Button(camName, EditorStyles.structHeadingLabel, GUILayout.MinWidth(100f)) && cam != null)
-#else
-			if (GUILayout.Button(camName, EditorStyles.label, GUILayout.MinWidth(100f)) && cam != null)
-#endif
-			{
-				Selection.activeGameObject = cam.gameObject;
-				EditorUtility.SetDirty(cam.gameObject);
-			}
-			GUILayout.Label(camLayer, GUILayout.Width(70f));
+			GUILayout.Label(cam == null ? "Camera's Name" : cam.name + (cam.orthographic ? " (2D)" : " (3D)"), GUILayout.MinWidth(100f));
+			GUILayout.Label(cam == null ? "Layer" : LayerMask.LayerToName(cam.gameObject.layer), GUILayout.Width(70f));
 
 			GUI.color = enabled ? Color.white : new Color(0.7f, 0.7f, 0.7f);
 
 			if (cam == null)
 			{
-				GUILayout.Label("EV", GUILayout.Width(26f));
+				GUILayout.Label("EV", GUILayout.Width(20f));
 			}
 			else
 			{
@@ -263,9 +251,23 @@ public class UICameraTool : EditorWindow
 
 				if (cam.cullingMask != mask)
 				{
-					NGUIEditorTools.RegisterUndo("Camera Mask Change", cam);
+					Undo.RegisterUndo(cam, "Camera Mask Change");
 					cam.cullingMask = mask;
+					EditorUtility.SetDirty(cam.gameObject);
 				}
+			}
+
+			if (cam)
+			{
+				if (GUILayout.Button("Select", GUILayout.Width(50f)))
+				{
+					Selection.activeGameObject = cam.gameObject;
+					EditorUtility.SetDirty(cam.gameObject);
+				}
+			}
+			else
+			{
+				GUILayout.Space(60f);
 			}
 		}
 		GUILayout.EndHorizontal();

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Example script showing how to activate or deactivate a game object when OnActivate event is received.
@@ -18,6 +13,6 @@ public class UICheckboxControlledObject : MonoBehaviour
 
 	void OnActivate (bool isActive)
 	{
-		if (target != null) NGUITools.SetActive(target, inverse ? !isActive : isActive);
+		if (target != null) target.SetActiveRecursively(inverse ? !isActive : isActive);
 	}
 }
