@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -41,13 +36,17 @@ public class UITextList : MonoBehaviour
 	protected int mTotalLines = 0;
 
 	/// <summary>
-	/// Clear the text.
+	/// Allow scrolling of the text list.
 	/// </summary>
 
-	public void Clear ()
+	public void Scroll (float val)
 	{
-		mParagraphs.Clear();
-		UpdateVisibleText();
+		if (val != 0f)
+		{
+			val *= (style == Style.Chat) ? 10f : -10f;
+			mScroll = Mathf.Max(0f, mScroll + val);
+			UpdateVisibleText();
+		}
 	}
 
 	/// <summary>
@@ -80,12 +79,11 @@ public class UITextList : MonoBehaviour
 		if (textLabel != null && textLabel.font != null)
 		{
 			// Rebuild the line
-			ce.lines = textLabel.font.WrapText(ce.text, maxWidth / textLabel.transform.localScale.y,
-				textLabel.multiLine, textLabel.supportEncoding, textLabel.symbolStyle).Split(mSeparator);
+			ce.lines = textLabel.font.WrapText(ce.text, maxWidth / textLabel.transform.localScale.y, true, true).Split(mSeparator);
 
 			// Recalculate the total number of lines
 			mTotalLines = 0;
-			for (int i = 0, imax = mParagraphs.Count; i < imax; ++i) mTotalLines += mParagraphs[i].lines.Length;
+			foreach (Paragraph p in mParagraphs) mTotalLines += p.lines.Length;
 		}
 
 		// Update the visible text
@@ -99,7 +97,7 @@ public class UITextList : MonoBehaviour
 	void Awake ()
 	{
 		if (textLabel == null) textLabel = GetComponentInChildren<UILabel>();
-		if (textLabel != null) textLabel.lineWidth = 0;
+		if (textLabel != null) textLabel.lineWidth = 0f;
 
 		Collider col = collider;
 
@@ -110,6 +108,12 @@ public class UITextList : MonoBehaviour
 			if (maxWidth  <= 0f) maxWidth  = col.bounds.size.x / transform.lossyScale.x;
 		}
 	}
+
+	/// <summary>
+	/// Scrolling support.
+	/// </summary>
+
+	void Update () { if (mSelected && supportScrollWheel) Scroll(Input.GetAxis("Mouse ScrollWheel")); }
 
 	/// <summary>
 	/// Remember whether the widget is selected.
@@ -125,7 +129,7 @@ public class UITextList : MonoBehaviour
 	{
 		if (textLabel != null)
 		{
-			UIFont font = (UIFont)textLabel.font;
+			UIFont font = textLabel.font;
 
 			if (font != null)
 			{
@@ -147,14 +151,10 @@ public class UITextList : MonoBehaviour
 
 				string final = "";
 
-				for (int i = 0, imax = mParagraphs.Count; i < imax; ++i)
+				foreach (Paragraph p in mParagraphs)
 				{
-					Paragraph p = mParagraphs[i];
-
-					for (int b = 0, bmax = p.lines.Length; b < bmax; ++b)
+					foreach (string s in p.lines)
 					{
-						string s = p.lines[b];
-
 						if (offset > 0)
 						{
 							--offset;
@@ -171,20 +171,6 @@ public class UITextList : MonoBehaviour
 				}
 				textLabel.text = final;
 			}
-		}
-	}
-
-	/// <summary>
-	/// Allow scrolling of the text list.
-	/// </summary>
-
-	void OnScroll (float val)
-	{
-		if (mSelected && supportScrollWheel)
-		{
-			val *= (style == Style.Chat) ? 10f : -10f;
-			mScroll = Mathf.Max(0f, mScroll + val);
-			UpdateVisibleText();
 		}
 	}
 }

@@ -1,11 +1,5 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 
 /// <summary>
 /// Inspector class used to edit the UIAtlas.
@@ -20,21 +14,13 @@ public class UIAtlasInspector : Editor
 		Sprite,
 	}
 
-	enum AtlasType
-	{
-		Normal,
-		Reference,
-	}
-
 	static View mView = View.Sprite;
 	static bool mUseShader = false;
 
 	UIAtlas mAtlas;
+	bool mRegisteredUndo = false;
 	bool mConfirmDelete = false;
 	UIAtlas.Sprite mSprite;
-
-	AtlasType mType = AtlasType.Normal;
-	UIAtlas mReplacement = null;
 
 	/// <summary>
 	/// Convenience function -- mark all widgets using the sprite as changed.
@@ -44,7 +30,7 @@ public class UIAtlasInspector : Editor
 	{
 		if (mSprite == null) return;
 
-		UISprite[] sprites = NGUITools.FindActive<UISprite>();
+		UISprite[] sprites = Resources.FindObjectsOfTypeAll(typeof(UISprite)) as UISprite[];
 
 		foreach (UISprite sp in sprites)
 		{
@@ -56,13 +42,13 @@ public class UIAtlasInspector : Editor
 			}
 		}
 
-		UILabel[] labels = NGUITools.FindActive<UILabel>();
+		UILabel[] labels = Resources.FindObjectsOfTypeAll(typeof(UILabel)) as UILabel[];
 
 		foreach (UILabel lbl in labels)
 		{
-			if (lbl.font != null && UIAtlas.CheckIfRelated(lbl.font.atlas, mAtlas) && lbl.font.spriteName == mSprite.name)
+			if (lbl.font != null && lbl.font.atlas == mAtlas && lbl.font.spriteName == mSprite.name)
 			{
-				UIBaseFont font = lbl.font;
+				UIFont font = lbl.font;
 				lbl.font = null;
 				lbl.font = font;
 				EditorUtility.SetDirty(lbl);
@@ -71,21 +57,15 @@ public class UIAtlasInspector : Editor
 	}
 
 	/// <summary>
-	/// Replacement atlas selection callback.
+	/// Register an Undo command with the Unity editor.
 	/// </summary>
 
-	void OnSelectAtlas (MonoBehaviour obj)
+	protected void RegisterUndo ()
 	{
-		if (mReplacement != obj)
+		if (!mRegisteredUndo)
 		{
-			// Undo doesn't work correctly in this case... so I won't bother.
-			//NGUIEditorTools.RegisterUndo("Atlas Change");
-			//NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-
-			mAtlas.replacement = obj as UIAtlas;
-			mReplacement = mAtlas.replacement as UIAtlas;
-			UnityEditor.EditorUtility.SetDirty(mAtlas);
-			if (mReplacement == null) mType = AtlasType.Normal;
+			mRegisteredUndo = true;
+			Undo.RegisterUndo(mAtlas, "Atlas Change");
 		}
 	}
 
@@ -95,63 +75,19 @@ public class UIAtlasInspector : Editor
 
 	public override void OnInspectorGUI ()
 	{
+		mRegisteredUndo = false;
 		EditorGUIUtility.LookLikeControls(80f);
 		mAtlas = target as UIAtlas;
-
-		NGUIEditorTools.DrawSeparator();
-
-		if (mAtlas.replacement != null)
-		{
-			mType = AtlasType.Reference;
-			mReplacement = mAtlas.replacement as UIAtlas;
-		}
-
-		AtlasType after = (AtlasType)EditorGUILayout.EnumPopup("Atlas Type", mType);
-
-		if (mType != after)
-		{
-			if (after == AtlasType.Normal)
-			{
-				OnSelectAtlas(null);
-			}
-			else
-			{
-				mType = AtlasType.Reference;
-			}
-		}
-
-		if (mType == AtlasType.Reference)
-		{
-			ComponentSelector.Draw<UIAtlas>(mAtlas.replacement as UIAtlas, OnSelectAtlas);
-
-			NGUIEditorTools.DrawSeparator();
-			GUILayout.Label("You can have one atlas simply point to\n" +
-				"another one. This is useful if you want to be\n" +
-				"able to quickly replace the contents of one\n" +
-				"atlas with another one, for example for\n" +
-				"swapping an SD atlas with an HD one, or\n" +
-				"replacing an English atlas with a Chinese\n" +
-				"one. All the sprites referencing this atlas\n" +
-				"will update their references to the new one.");
-
-			if (mReplacement != mAtlas && mAtlas.replacement != mReplacement)
-			{
-				NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-				mAtlas.replacement = mReplacement;
-				UnityEditor.EditorUtility.SetDirty(mAtlas);
-			}
-			return;
-		}
 
 		if (!mConfirmDelete)
 		{
 			NGUIEditorTools.DrawSeparator();
-			Material mat = EditorGUILayout.ObjectField("Material", mAtlas.spriteMaterial, typeof(Material), false) as Material;
+			Material mat = EditorGUILayout.ObjectField("Material", mAtlas.material, typeof(Material), false) as Material;
 
-			if (mAtlas.spriteMaterial != mat)
+			if (mAtlas.material != mat)
 			{
-				NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-				mAtlas.spriteMaterial = mat;
+				RegisterUndo();
+				mAtlas.material = mat;
 
 				// Ensure that this atlas has valid import settings
 				if (mAtlas.texture != null) NGUIEditorTools.ImportTexture(mAtlas.texture, false, false);
@@ -169,8 +105,9 @@ public class UIAtlasInspector : Editor
 					// Ensure that this atlas has valid import settings
 					if (mAtlas.texture != null) NGUIEditorTools.ImportTexture(mAtlas.texture, false, false);
 
-					NGUIEditorTools.RegisterUndo("Import Sprites", mAtlas);
+					Undo.RegisterUndo(mAtlas, "Import Sprites");
 					NGUIJson.LoadSpriteData(mAtlas, ta);
+					mRegisteredUndo = true;
 					if (mSprite != null) mSprite = mAtlas.GetSprite(mSprite.name);
 					mAtlas.MarkAsDirty();
 				}
@@ -179,26 +116,22 @@ public class UIAtlasInspector : Editor
 
 				if (coords != mAtlas.coordinates)
 				{
-					NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
+					RegisterUndo();
 					mAtlas.coordinates = coords;
-					mConfirmDelete = false;
-				}
-
-				float pixelSize = EditorGUILayout.FloatField("Pixel Size", mAtlas.pixelSize);
-
-				if (pixelSize != mAtlas.pixelSize)
-				{
-					NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-					mAtlas.pixelSize = pixelSize;
 					mConfirmDelete = false;
 				}
 			}
 		}
 
-		if (mAtlas.spriteMaterial != null)
+		if (mAtlas.material != null)
 		{
 			Color blue = new Color(0f, 0.7f, 1f, 1f);
 			Color green = new Color(0.4f, 1f, 0f, 1f);
+
+			if (mSprite == null && mAtlas.sprites.Count > 0)
+			{
+				mSprite = mAtlas.sprites[0];
+			}
 
 			if (mConfirmDelete)
 			{
@@ -217,8 +150,8 @@ public class UIAtlasInspector : Editor
 
 						if (GUILayout.Button("Delete"))
 						{
-							NGUIEditorTools.RegisterUndo("Delete Sprite", mAtlas);
-							mAtlas.spriteList.Remove(mSprite);
+							RegisterUndo();
+							mAtlas.sprites.Remove(mSprite);
 							mConfirmDelete = false;
 						}
 						GUI.backgroundColor = Color.white;
@@ -229,13 +162,6 @@ public class UIAtlasInspector : Editor
 			}
 			else
 			{
-				if (mSprite == null && mAtlas.spriteList.Count > 0)
-				{
-					string spriteName = EditorPrefs.GetString("NGUI Selected Sprite");
-					if (!string.IsNullOrEmpty(spriteName)) mSprite = mAtlas.GetSprite(spriteName);
-					if (mSprite == null) mSprite = mAtlas.spriteList[0];
-				}
-
 				GUI.backgroundColor = Color.green;
 
 				GUILayout.BeginHorizontal();
@@ -244,7 +170,7 @@ public class UIAtlasInspector : Editor
 
 					if (GUILayout.Button("New Sprite"))
 					{
-						NGUIEditorTools.RegisterUndo("Add Sprite", mAtlas);
+						RegisterUndo();
 						UIAtlas.Sprite newSprite = new UIAtlas.Sprite();
 
 						if (mSprite != null)
@@ -258,7 +184,7 @@ public class UIAtlasInspector : Editor
 							newSprite.name = "New Sprite";
 						}
 
-						mAtlas.spriteList.Add(newSprite);
+						mAtlas.sprites.Add(newSprite);
 						mSprite = newSprite;
 					}
 
@@ -282,25 +208,25 @@ public class UIAtlasInspector : Editor
 					if (spriteName != mSprite.name)
 					{
 						mSprite = mAtlas.GetSprite(spriteName);
-						EditorPrefs.SetString("NGUI Selected Sprite", spriteName);
 					}
 
 					if (mSprite == null) return;
 
-					Texture2D tex = mAtlas.spriteMaterial.mainTexture as Texture2D;
+					// Grab the sprite's inner and outer dimensions
+					Rect inner = mSprite.inner;
+					Rect outer = mSprite.outer;
+
+					Texture2D tex = mAtlas.material.mainTexture as Texture2D;
 
 					if (tex != null)
 					{
-						Rect inner = mSprite.inner;
-						Rect outer = mSprite.outer;
-
 						string name = EditorGUILayout.TextField("Edit Name", mSprite.name);
 
 						if (mSprite.name != name && !string.IsNullOrEmpty(name))
 						{
 							bool found = false;
 
-							foreach (UIAtlas.Sprite sp in mAtlas.spriteList)
+							foreach (UIAtlas.Sprite sp in mAtlas.sprites)
 							{
 								if (sp.name == name)
 								{
@@ -311,40 +237,17 @@ public class UIAtlasInspector : Editor
 
 							if (!found)
 							{
-								NGUIEditorTools.RegisterUndo("Edit Sprite Name", mAtlas);
+								RegisterUndo();
 								mSprite.name = name;
 							}
 						}
 
-						if (mAtlas.coordinates == UIAtlas.Coordinates.Pixels)
-						{
-							GUI.backgroundColor = green;
-							outer = NGUIEditorTools.IntRect("Dimensions", mSprite.outer);
-
-							Vector4 border = new Vector4(
-								mSprite.inner.xMin - mSprite.outer.xMin,
-								mSprite.inner.yMin - mSprite.outer.yMin,
-								mSprite.outer.xMax - mSprite.inner.xMax,
-								mSprite.outer.yMax - mSprite.inner.yMax);
-
-							GUI.backgroundColor = blue;
-							border = NGUIEditorTools.IntPadding("Border", border);
-							GUI.backgroundColor = Color.white;
-
-							inner.xMin = mSprite.outer.xMin + border.x;
-							inner.yMin = mSprite.outer.yMin + border.y;
-							inner.xMax = mSprite.outer.xMax - border.z;
-							inner.yMax = mSprite.outer.yMax - border.w;
-						}
-						else
-						{
-							// Draw the inner and outer rectangle dimensions
-							GUI.backgroundColor = green;
-							outer = EditorGUILayout.RectField("Outer Rect", mSprite.outer);
-							GUI.backgroundColor = blue;
-							inner = EditorGUILayout.RectField("Inner Rect", mSprite.inner);
-							GUI.backgroundColor = Color.white;
-						}
+						// Draw the inner and outer rectangle dimensions
+						GUI.backgroundColor = green;
+						outer = EditorGUILayout.RectField("Outer Rect", mSprite.outer);
+						GUI.backgroundColor = blue;
+						inner = EditorGUILayout.RectField("Inner Rect", mSprite.inner);
+						GUI.backgroundColor = Color.white;
 
 						if (outer.xMax < outer.xMin) outer.xMax = outer.xMin;
 						if (outer.yMax < outer.yMin) outer.yMax = outer.yMin;
@@ -369,60 +272,80 @@ public class UIAtlasInspector : Editor
 						// Padding is mainly meant to be used by the 'trimmed' feature of TexturePacker
 						if (mAtlas.coordinates == UIAtlas.Coordinates.Pixels)
 						{
-							int left	= Mathf.RoundToInt(mSprite.paddingLeft	 * mSprite.outer.width);
-							int right	= Mathf.RoundToInt(mSprite.paddingRight	 * mSprite.outer.width);
-							int top		= Mathf.RoundToInt(mSprite.paddingTop	 * mSprite.outer.height);
-							int bottom	= Mathf.RoundToInt(mSprite.paddingBottom * mSprite.outer.height);
+							int l0 = Mathf.RoundToInt(mSprite.paddingLeft	* mSprite.outer.width);
+							int r0 = Mathf.RoundToInt(mSprite.paddingRight	* mSprite.outer.width);
+							int t0 = Mathf.RoundToInt(mSprite.paddingTop	* mSprite.outer.height);
+							int b0 = Mathf.RoundToInt(mSprite.paddingBottom * mSprite.outer.height);
 
-							NGUIEditorTools.IntVector a = NGUIEditorTools.IntPair("Padding", "Left", "Top", left, top);
-							NGUIEditorTools.IntVector b = NGUIEditorTools.IntPair(null, "Right", "Bottom", right, bottom);
+							int l1 = l0;
+							int r1 = r0;
+							int t1 = t0;
+							int b1 = b0;
 
-							if (a.x != left || a.y != top || b.x != right || b.y != bottom)
-							{
-								NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-								mSprite.paddingLeft		= a.x / mSprite.outer.width;
-								mSprite.paddingTop		= a.y / mSprite.outer.width;
-								mSprite.paddingRight	= b.x / mSprite.outer.height;
-								mSprite.paddingBottom	= b.y / mSprite.outer.height;
-								MarkSpriteAsDirty();
-							}
-						}
-						else
-						{
-							// Create a button that can make the coordinates pixel-perfect on click
 							GUILayout.BeginHorizontal();
 							{
-								GUILayout.Label("Correction", GUILayout.Width(75f));
-
-								Rect corrected0 = outer;
-								Rect corrected1 = inner;
-
-								if (mAtlas.coordinates == UIAtlas.Coordinates.Pixels)
-								{
-									corrected0 = NGUIMath.MakePixelPerfect(corrected0);
-									corrected1 = NGUIMath.MakePixelPerfect(corrected1);
-								}
-								else
-								{
-									corrected0 = NGUIMath.MakePixelPerfect(corrected0, tex.width, tex.height);
-									corrected1 = NGUIMath.MakePixelPerfect(corrected1, tex.width, tex.height);
-								}
-
-								if (corrected0 == mSprite.outer && corrected1 == mSprite.inner)
-								{
-									GUI.color = Color.grey;
-									GUILayout.Button("Make Pixel-Perfect");
-									GUI.color = Color.white;
-								}
-								else if (GUILayout.Button("Make Pixel-Perfect"))
-								{
-									outer = corrected0;
-									inner = corrected1;
-									GUI.changed = true;
-								}
+								GUILayout.Label("Padding");
+								GUILayout.Space(7f);
+								EditorGUIUtility.LookLikeControls(40f);
+								l1 = EditorGUILayout.IntField("Left", l0, GUILayout.MinWidth(40f));
+								r1 = EditorGUILayout.IntField("Right", r0, GUILayout.MinWidth(40f));
 							}
 							GUILayout.EndHorizontal();
+
+							GUILayout.BeginHorizontal();
+							{
+								GUILayout.Space(60f);
+								EditorGUIUtility.LookLikeControls(40f);
+								t1 = EditorGUILayout.IntField("Top", t0, GUILayout.MinWidth(40f));
+								b1 = EditorGUILayout.IntField("Btm.", b0, GUILayout.MinWidth(40f));
+							}
+							GUILayout.EndHorizontal();
+
+							if (l0 != l1 || r0 != r1 || t0 != t1 || b0 != b1)
+							{
+								RegisterUndo();
+								mSprite.paddingLeft		= l1 / mSprite.outer.width;
+								mSprite.paddingRight	= r1 / mSprite.outer.width;
+								mSprite.paddingTop		= t1 / mSprite.outer.height;
+								mSprite.paddingBottom	= b1 / mSprite.outer.height;
+								MarkSpriteAsDirty();
+							}
+							EditorGUIUtility.LookLikeControls(80f);
 						}
+
+						// Create a button that can make the coordinates pixel-perfect on click
+						GUILayout.BeginHorizontal();
+						{
+							GUILayout.Label("Correction", GUILayout.Width(75f));
+
+							Rect corrected0 = outer;
+							Rect corrected1 = inner;
+
+							if (mAtlas.coordinates == UIAtlas.Coordinates.Pixels)
+							{
+								corrected0 = NGUIMath.MakePixelPerfect(corrected0);
+								corrected1 = NGUIMath.MakePixelPerfect(corrected1);
+							}
+							else
+							{
+								corrected0 = NGUIMath.MakePixelPerfect(corrected0, tex.width, tex.height);
+								corrected1 = NGUIMath.MakePixelPerfect(corrected1, tex.width, tex.height);
+							}
+
+							if (corrected0 == mSprite.outer && corrected1 == mSprite.inner)
+							{
+								GUI.color = Color.grey;
+								GUILayout.Button("Make Pixel-Perfect");
+								GUI.color = Color.white;
+							}
+							else if (GUILayout.Button("Make Pixel-Perfect"))
+							{
+								outer = corrected0;
+								inner = corrected1;
+								GUI.changed = true;
+							}
+						}
+						GUILayout.EndHorizontal();
 
 						GUILayout.BeginHorizontal();
 						{
@@ -443,15 +366,6 @@ public class UIAtlasInspector : Editor
 						}
 						GUILayout.EndHorizontal();
 
-						if (mSprite.outer != outer || mSprite.inner != inner)
-						{
-							NGUIEditorTools.RegisterUndo("Atlas Change", mAtlas);
-							mSprite.outer = outer;
-							mSprite.inner = inner;
-							mConfirmDelete = false;
-							MarkSpriteAsDirty();
-						}
-
 						Rect uv0 = outer;
 						Rect uv1 = inner;
 
@@ -463,15 +377,26 @@ public class UIAtlasInspector : Editor
 
 						// Draw the atlas
 						EditorGUILayout.Separator();
-						Material m = mUseShader ? mAtlas.spriteMaterial : null;
+						Material m = mUseShader ? mAtlas.material : null;
 						Rect rect = (mView == View.Atlas) ? NGUIEditorTools.DrawAtlas(tex, m) : NGUIEditorTools.DrawSprite(tex, uv0, m);
 
 						// Draw the sprite outline
 						NGUIEditorTools.DrawOutline(rect, uv0, uv1);
 						EditorGUILayout.Separator();
 					}
+
+					if (GUI.changed)
+					{
+						RegisterUndo();
+						mSprite.outer = outer;
+						mSprite.inner = inner;
+						mConfirmDelete = false;
+					}
 				}
 			}
 		}
+
+		// If something changed, mark the atlas as dirty
+		if (mRegisteredUndo) EditorUtility.SetDirty(mAtlas);
 	}
 }

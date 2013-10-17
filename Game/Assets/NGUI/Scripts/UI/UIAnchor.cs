@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// This script can be used to anchor an object to the side of the screen,
@@ -14,133 +9,115 @@ using UnityEngine;
 [AddComponentMenu("NGUI/UI/Anchor")]
 public class UIAnchor : MonoBehaviour
 {
-    public enum Side
-    {
-        BottomLeft,
-        Left,
-        TopLeft,
-        Top,
-        TopRight,
-        Right,
-        BottomRight,
-        Bottom,
-        Center,
-    }
+	public enum Side
+	{
+		BottomLeft,
+		Left,
+		TopLeft,
+		Top,
+		TopRight,
+		Right,
+		BottomRight,
+		Bottom,
+		Center,
+	}
 
-    public Camera uiCamera = null;
-    public Side side = Side.Center;
-    public bool halfPixelOffset = true;
-    public float depthOffset = 0f;
-    public Vector2 relativeOffset = Vector2.zero;
+	public Camera uiCamera = null;
+	public Side side = Side.Center;
+	public bool halfPixelOffset = true;
+	public bool stretchToFill = false;
+	public float depthOffset = 0f;
 
-    // Stretching is now done by a separate script -- UIStretch, as of version 1.90.
-    [HideInInspector]
-    [SerializeField]
-    bool stretchToFill = false;
+	Transform mTrans;
+	bool mIsWindows = false;
 
-    Transform mTrans;
-    bool mIsWindows = false;
+	/// <summary>
+	/// Automatically find the camera responsible for drawing the widgets under this object.
+	/// </summary>
 
-    /// <summary>
-    /// Cache the transform.
-    /// </summary>
+	void OnEnable ()
+	{
+		mTrans = transform;
 
-    void Awake() { mTrans = transform; }
+		mIsWindows = (Application.platform == RuntimePlatform.WindowsPlayer ||
+			Application.platform == RuntimePlatform.WindowsWebPlayer ||
+			Application.platform == RuntimePlatform.WindowsEditor);
 
-    /// <summary>
-    /// Legacy support.
-    /// </summary>
+		if (uiCamera == null) uiCamera = NGUITools.FindCameraForLayer(gameObject.layer);
+	}
 
-    void Start()
-    {
-        if (stretchToFill)
-        {
-            stretchToFill = false;
+	/// <summary>
+	/// Anchor the object to the appropriate point.
+	/// </summary>
 
-            UIStretch stretch = gameObject.AddComponent<UIStretch>();
-            stretch.style = UIStretch.Style.Both;
-            stretch.uiCamera = uiCamera;
-        }
-    }
+	public void Update ()
+	{
+		if (uiCamera != null)
+		{
+			if (stretchToFill) side = Side.TopLeft;
 
-    /// <summary>
-    /// Automatically find the camera responsible for drawing the widgets under this object.
-    /// </summary>
+			Vector3 v = new Vector3(Screen.width, Screen.height, 0f);
 
-    void OnEnable()
-    {
-        mIsWindows = (Application.platform == RuntimePlatform.WindowsPlayer ||
-            Application.platform == RuntimePlatform.WindowsWebPlayer ||
-            Application.platform == RuntimePlatform.WindowsEditor);
+			if (side == Side.Center)
+			{
+				v.x *= uiCamera.rect.width * 0.5f;
+				v.y *= uiCamera.rect.height * 0.5f;
+			}
+			else
+			{
+				if (side == Side.Right || side == Side.TopRight || side == Side.BottomRight)
+				{
+					v.x *= uiCamera.rect.xMax;
+				}
+				else if (side == Side.Top || side == Side.Center || side == Side.Bottom)
+				{
+					v.x *= (uiCamera.rect.xMax - uiCamera.rect.xMin) * 0.5f;
+				}
+				else
+				{
+					v.x *= uiCamera.rect.xMin;
+				}
 
-        if (uiCamera == null) uiCamera = NGUITools.FindCameraForLayer(gameObject.layer);
-    }
+				if (side == Side.Top || side == Side.TopRight || side == Side.TopLeft)
+				{
+					v.y *= uiCamera.rect.yMax;
+				}
+				else if (side == Side.Left || side == Side.Center || side == Side.Right)
+				{
+					v.y *= (uiCamera.rect.yMax - uiCamera.rect.yMin) * 0.5f;
+				}
+				else
+				{
+					v.y *= uiCamera.rect.yMin;
+				}
+			}
 
-    /// <summary>
-    /// Anchor the object to the appropriate point.
-    /// </summary>
+			v.z = (mTrans.TransformPoint(Vector3.forward * depthOffset) -
+				mTrans.TransformPoint(Vector3.zero)).magnitude * Mathf.Sign(depthOffset);
 
-    void Update()
-    {
-        if (uiCamera != null)
-        {
-            Rect rect = uiCamera.pixelRect;
-            float cx = (rect.xMin + rect.xMax) * 0.5f;
-            float cy = (rect.yMin + rect.yMax) * 0.5f;
-            Vector3 v = new Vector3(cx, cy, depthOffset);
+			if (uiCamera.orthographic)
+			{
+				v.z += (uiCamera.nearClipPlane + uiCamera.farClipPlane) * 0.5f;
 
-            if (side != Side.Center)
-            {
-                if (side == Side.Right || side == Side.TopRight || side == Side.BottomRight)
-                {
-                    v.x = rect.xMax;
-                }
-                else if (side == Side.Top || side == Side.Center || side == Side.Bottom)
-                {
-                    v.x = cx;
-                }
-                else
-                {
-                    v.x = rect.xMin;
-                }
+				if (halfPixelOffset && mIsWindows)
+				{
+					v.x -= 0.5f;
+					v.y += 0.5f;
+				}
+			}
 
-                if (side == Side.Top || side == Side.TopRight || side == Side.TopLeft)
-                {
-                    v.y = rect.yMax;
-                }
-                else if (side == Side.Left || side == Side.Center || side == Side.Right)
-                {
-                    v.y = cy;
-                }
-                else
-                {
-                    v.y = rect.yMin;
-                }
-            }
+			Vector3 newPos = uiCamera.ScreenToWorldPoint(v);
+			Vector3 currPos = mTrans.position;
 
-            float screenWidth = rect.width;
-            float screenHeight = rect.height;
+			// Wrapped in an 'if' so the scene doesn't get marked as 'edited' every frame
+			if (newPos != currPos) mTrans.position = newPos;
 
-            v.x += relativeOffset.x * screenWidth;
-            v.y += relativeOffset.y * screenHeight;
-
-            if (uiCamera.orthographic)
-            {
-                v.x = Mathf.RoundToInt(v.x);
-                v.y = Mathf.RoundToInt(v.y);
-
-                if (halfPixelOffset && mIsWindows)
-                {
-                    v.x -= 0.5f;
-                    v.y += 0.5f;
-                }
-            }
-
-            // Convert from screen to world coordinates, since the two may not match (UIRoot set to manual size)
-            v = uiCamera.ScreenToWorldPoint(v);
-
-            // Wrapped in an 'if' so the scene doesn't get marked as 'edited' every frame
-            if (mTrans.position != v) mTrans.position = v;
-        }
-    }
+			if (stretchToFill)
+			{
+				Vector3 localPos = mTrans.localPosition;
+				Vector3 localScale = new Vector3(Mathf.Abs(localPos.x) * 2f, Mathf.Abs(localPos.y) * 2f, 1f);
+				if (mTrans.localScale != localScale) mTrans.localScale = localScale;
+			}
+		}
+	}
 }

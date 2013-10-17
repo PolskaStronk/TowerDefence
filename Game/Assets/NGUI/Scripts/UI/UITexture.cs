@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -16,12 +11,6 @@ using System.Collections.Generic;
 [AddComponentMenu("NGUI/UI/Texture")]
 public class UITexture : UIWidget
 {
-	/// <summary>
-	/// UI textures should keep the material reference.
-	/// </summary>
-
-	public override bool keepMaterial { get { return true; } }
-
 	/// <summary>
 	/// Adjust the scale of the widget to make it pixel-perfect.
 	/// </summary>

@@ -7,6 +7,8 @@ public class GameController : MonoBehaviour {
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
+	public static int height = 40, width = 40;
+	public static List <MonsterObject>[,] plane;
 	
 	void Start () {
 	
@@ -22,6 +24,9 @@ public class GameController : MonoBehaviour {
 	
 	void Update () {
 	
+		plane = new List <MonsterObject>[height, width];
+		
+		
 		foreach (TowerObject tower_ in towers) {
 			tower_.Update();	
 		}
@@ -29,5 +34,6 @@ public class GameController : MonoBehaviour {
 		foreach (MonsterObject monster_ in monsters) {
 			monster_.Update();	
 		}
+		
 	}
 }

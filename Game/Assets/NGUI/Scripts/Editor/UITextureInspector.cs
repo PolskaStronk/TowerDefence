@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 
@@ -20,8 +15,9 @@ public class UITextureInspector : UIWidgetInspector
 
 		if (mWidget.material != mat)
 		{
-			NGUIEditorTools.RegisterUndo("Material Selection", mWidget);
+			Undo.RegisterUndo(mWidget, "Material Selection");
 			mWidget.material = mat;
+			EditorUtility.SetDirty(mWidget.gameObject);
 		}
 		return (mWidget.material != null);
 	}

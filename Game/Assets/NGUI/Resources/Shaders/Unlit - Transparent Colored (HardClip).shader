@@ -7,25 +7,23 @@ Shader "Unlit/Transparent Colored (HardClip)"
 
 	SubShader
 	{
-		LOD 200
-
 		Tags
 		{
 			"Queue" = "Transparent"
 			"IgnoreProjector" = "True"
 			"RenderType" = "Transparent"
 		}
+
+		LOD 200
+		Cull Off
+		Lighting Off
+		ZWrite Off
+		Fog { Color (0,0,0,0) }
+		ColorMask RGB
+		Blend SrcAlpha OneMinusSrcAlpha
 		
 		Pass
 		{
-			Cull Off
-			Lighting Off
-			ZWrite Off
-			Offset -1, -1
-			Fog { Mode Off }
-			ColorMask RGB
-			Blend SrcAlpha OneMinusSrcAlpha
-
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
@@ -35,6 +33,7 @@ Shader "Unlit/Transparent Colored (HardClip)"
 
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
+			float4 _ClipRange = float4(0.0, 0.0, 1000.0, 1000.0);
 
 			struct appdata_t
 			{
@@ -54,16 +53,16 @@ Shader "Unlit/Transparent Colored (HardClip)"
 			v2f vert (appdata_t v)
 			{
 				v2f o;
+				o.worldPos = v.vertex.xy;
 				o.vertex = mul(UNITY_MATRIX_MVP, v.vertex);
 				o.color = v.color;
-				o.texcoord = v.texcoord;
-				o.worldPos = TRANSFORM_TEX(v.vertex.xy, _MainTex);
+				o.texcoord = TRANSFORM_TEX(v.texcoord, _MainTex);
 				return o;
 			}
 
 			fixed4 frag (v2f IN) : COLOR
 			{
-				float2 factor = abs(IN.worldPos);
+				float2 factor = abs(IN.worldPos - _ClipRange.xy) / _ClipRange.zw;
 				clip(1.0 - max(factor.x, factor.y));
 				return tex2D(_MainTex, IN.texcoord) * IN.color;
 			}
@@ -84,7 +83,7 @@ Shader "Unlit/Transparent Colored (HardClip)"
 		Cull Off
 		Lighting Off
 		ZWrite Off
-		Fog { Mode Off }
+		Fog { Color (0,0,0,0) }
 		ColorMask RGB
 		AlphaTest Greater .01
 		Blend SrcAlpha OneMinusSrcAlpha

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -15,8 +10,13 @@ using System.Collections.Generic;
 [AddComponentMenu("NGUI/UI/Sprite Animation")]
 public class UISpriteAnimation : MonoBehaviour
 {
-	[HideInInspector][SerializeField] int mFPS = 30;
-	[HideInInspector][SerializeField] string mPrefix = "";
+#if UNITY_FLASH // Unity 3.5b6 is bugged when SerializeField is mixed with prefabs (after LoadLevel)
+	public int mFPS = 30;
+	public string mPrefix = "";
+#else
+	[SerializeField] int mFPS = 30;
+	[SerializeField] string mPrefix = "";
+#endif
 
 	UISprite mSprite;
 	float mDelta = 0f;
@@ -73,12 +73,10 @@ public class UISpriteAnimation : MonoBehaviour
 
 		if (mSprite != null && mSprite.atlas != null)
 		{
-			List<UIAtlas.Sprite> sprites = mSprite.atlas.spriteList;
+			List<UIAtlas.Sprite> sprites = mSprite.atlas.sprites;
 
-			for (int i = 0, imax = sprites.Count; i < imax; ++i)
+			foreach (UIAtlas.Sprite sprite in sprites)
 			{
-				UIAtlas.Sprite sprite = sprites[i];
-
 				if (string.IsNullOrEmpty(mPrefix) || sprite.name.StartsWith(mPrefix))
 				{
 					mSpriteNames.Add(sprite.name);
