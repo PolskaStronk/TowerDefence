@@ -1,42 +1,22 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Tween the object's local scale.
 /// </summary>
 
 [AddComponentMenu("NGUI/Tween/Scale")]
-public class TweenScale : UITweener
+public class TweenScale : NTweener
 {
-	public Vector3 from = Vector3.one;
-	public Vector3 to = Vector3.one;
-	public bool updateTable = false;
+	public Vector3 from;
+	public Vector3 to;
 
 	Transform mTrans;
-	UITable mTable;
 
-	public Transform cachedTransform { get { if (mTrans == null) mTrans = transform; return mTrans; } }
+	public Vector3 scale { get { return mTrans.localScale; } set { mTrans.localScale = value; } }
 
-	public Vector3 scale { get { return cachedTransform.localScale; } set { cachedTransform.localScale = value; } }
+	void Awake () { mTrans = transform; }
 
-	override protected void OnUpdate (float factor)
-	{
-		cachedTransform.localScale = from * (1f - factor) + to * factor;
-
-		if (updateTable)
-		{
-			if (mTable == null)
-			{
-				mTable = NGUITools.FindInParents<UITable>(gameObject);
-				if (mTable == null) { updateTable = false; return; }
-			}
-			mTable.repositionNow = true;
-		}
-	}
+	override protected void OnUpdate (float factor) { mTrans.localScale = from * (1f - factor) + to * factor; }
 
 	/// <summary>
 	/// Start the tweening operation.
@@ -44,7 +24,7 @@ public class TweenScale : UITweener
 
 	static public TweenScale Begin (GameObject go, float duration, Vector3 scale)
 	{
-		TweenScale comp = UITweener.Begin<TweenScale>(go, duration);
+		TweenScale comp = NTweener.Begin<TweenScale>(go, duration);
 		comp.from = comp.scale;
 		comp.to = scale;
 		return comp;

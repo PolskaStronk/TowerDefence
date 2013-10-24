@@ -1,15 +1,9 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Allows dragging of the camera object and restricts camera's movement to be within bounds of the area created by the rootForBounds colliders.
 /// </summary>
 
-[ExecuteInEditMode]
 [AddComponentMenu("NGUI/Interaction/Drag Camera")]
 public class UIDragCamera : IgnoreTimeScale
 {
@@ -17,70 +11,165 @@ public class UIDragCamera : IgnoreTimeScale
 	/// Target object that will be dragged.
 	/// </summary>
 
-	public UIDraggableCamera draggableCamera;
-
-	// Version 1.92 and earlier referenced the target and had properties specified on every drag script.
-	[HideInInspector][SerializeField] Component target;
+	public Camera target;
 
 	/// <summary>
-	/// Automatically find the draggable camera if possible.
+	/// Root object that will be used for drag-limiting bounds.
 	/// </summary>
 
-	void Awake ()
-	{
-		// Legacy functionality support for backwards compatibility
-		if (target != null)
-		{
-			if (draggableCamera == null)
-			{
-				draggableCamera = target.GetComponent<UIDraggableCamera>();
+	public Transform rootForBounds;
 
-				if (draggableCamera == null)
-				{
-					draggableCamera = target.gameObject.AddComponent<UIDraggableCamera>();
-				}
-			}
-			target = null;
-		}
-		else if (draggableCamera == null)
-		{
-			draggableCamera = NGUITools.FindInParents<UIDraggableCamera>(gameObject);
-		}
+	/// <summary>
+	/// Scale value applied to the drag delta. Set X or Y to 0 to disallow dragging in that direction.
+	/// </summary>
+
+	public Vector2 scale = Vector2.one;
+
+	/// <summary>
+	/// Effect to apply when dragging.
+	/// </summary>
+
+	public UIDragObject.DragEffect dragEffect = UIDragObject.DragEffect.MomentumAndSpring;
+
+	/// <summary>
+	/// How much momentum gets applied when the press is released after dragging.
+	/// </summary>
+
+	public float momentumAmount = 35f;
+
+	Transform mTrans;
+	bool mPressed = false;
+	Vector3 mMomentum = Vector3.zero;
+	Bounds mBounds;
+
+	/// <summary>
+	/// Cache the transform.
+	/// </summary>
+
+	void Start ()
+	{
+		// Before 1.44 'target' was a transform
+		if (((Component)target) is Transform) target = target.camera;
+		if (target != null) mTrans = target.transform;
+		else enabled = false;
 	}
 
 	/// <summary>
-	/// Forward the press event to the draggable camera.
+	/// Calculate the bounds of all widgets under this game object.
 	/// </summary>
 
 	void OnPress (bool isPressed)
 	{
-		if (enabled && gameObject.active && draggableCamera != null)
+		if (rootForBounds != null)
 		{
-			draggableCamera.Press(isPressed);
+			mPressed = isPressed;
+
+			if (isPressed)
+			{
+				// Update the bounds
+				mBounds = NGUIMath.CalculateAbsoluteWidgetBounds(rootForBounds);
+
+				// Remove all momentum on press
+				mMomentum = Vector3.zero;
+
+				// Disable the spring movement
+				SpringPosition sp = target.GetComponent<SpringPosition>();
+				if (sp != null) sp.enabled = false;
+			}
+			else if (dragEffect == UIDragObject.DragEffect.MomentumAndSpring)
+			{
+				ConstrainToBounds(false);
+			}
 		}
 	}
 
 	/// <summary>
-	/// Forward the drag event to the draggable camera.
+	/// Drag event receiver.
 	/// </summary>
 
 	void OnDrag (Vector2 delta)
 	{
-		if (enabled && gameObject.active && draggableCamera != null)
+		if (target != null)
 		{
-			draggableCamera.Drag(delta);
+			Vector3 offset = Vector3.Scale((Vector3)delta, -scale);
+			mTrans.localPosition += offset;
+
+			// Adjust the momentum
+			mMomentum = Vector3.Lerp(mMomentum, offset * (realTimeDelta * momentumAmount), 0.5f);
+
+			// Constrain the UI to the bounds, and if done so, eliminate the momentum
+			if (dragEffect != UIDragObject.DragEffect.MomentumAndSpring && ConstrainToBounds(true)) mMomentum = Vector3.zero;
 		}
 	}
 
 	/// <summary>
-	/// Forward the scroll event to the draggable camera.
+	/// Calculate the offset needed to be constrained within the panel's bounds.
 	/// </summary>
 
-	void OnScroll (float delta)
+	Vector3 CalculateConstrainOffset ()
 	{
-		if (enabled && gameObject.active && draggableCamera != null)
+		if (target == null || rootForBounds == null) return Vector3.zero;
+
+		Vector3 bottomLeft = new Vector3(target.rect.xMin * Screen.width, target.rect.yMin * Screen.height, 0f);
+		Vector3 topRight   = new Vector3(target.rect.xMax * Screen.width, target.rect.yMax * Screen.height, 0f);
+
+		bottomLeft = target.ScreenToWorldPoint(bottomLeft);
+		topRight = target.ScreenToWorldPoint(topRight);
+
+		Vector2 minRect = new Vector2(mBounds.min.x, mBounds.min.y);
+		Vector2 maxRect = new Vector2(mBounds.max.x, mBounds.max.y);
+
+		return NGUIMath.ConstrainRect(minRect, maxRect, bottomLeft, topRight);
+	}
+
+	/// <summary>
+	/// Constrain the current camera's position to be within the viewable area's bounds.
+	/// </summary>
+
+	bool ConstrainToBounds (bool immediate)
+	{
+		if (mTrans != null && rootForBounds != null)
 		{
-			draggableCamera.Scroll(delta);
+			Vector3 offset = CalculateConstrainOffset();
+
+			if (offset.magnitude > 0f)
+			{
+				if (immediate)
+				{
+					mTrans.position -= offset;
+				}
+				else
+				{
+					SpringPosition sp = SpringPosition.Begin(target.gameObject, mTrans.position - offset, 13f);
+					sp.ignoreTimeScale = true;
+					sp.worldSpace = true;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// <summary>
+	/// Apply the dragging momentum.
+	/// </summary>
+
+	void Update ()
+	{
+		float delta = UpdateRealTimeDelta();
+
+		if (mPressed)
+		{
+			// Disable the spring movement
+			SpringPosition sp = target.GetComponent<SpringPosition>();
+			if (sp != null) sp.enabled = false;
+		}
+		else if (dragEffect != UIDragObject.DragEffect.None && target != null && mMomentum.magnitude > 0.005f)
+		{
+			// Apply the momentum
+			mTrans.localPosition += NGUIMath.SpringDampen(ref mMomentum, 9f, delta);
+			mBounds = NGUIMath.CalculateAbsoluteWidgetBounds(rootForBounds);
+			ConstrainToBounds(false);
 		}
 	}
 }

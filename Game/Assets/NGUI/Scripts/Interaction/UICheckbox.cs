@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using AnimationOrTween;
 
 /// <summary>
@@ -13,49 +8,21 @@ using AnimationOrTween;
 [AddComponentMenu("NGUI/Interaction/Checkbox")]
 public class UICheckbox : MonoBehaviour
 {
-	static public UICheckbox current;
-
 	public UISprite checkSprite;
 	public Animation checkAnimation;
 	public GameObject eventReceiver;
 	public string functionName = "OnActivate";
 	public bool startsChecked = true;
-	public Transform radioButtonRoot;
-	public bool optionCanBeNone = false;
-
-	// Prior to 1.90 'option' was used to toggle the radio button group functionality
-	[HideInInspector][SerializeField] bool option = false;
+	public bool option = false;
 
 	bool mChecked = true;
-	bool mStarted = false;
 	Transform mTrans;
 
 	/// <summary>
 	/// Whether the checkbox is checked.
 	/// </summary>
 
-	public bool isChecked
-	{
-		get { return mChecked; }
-		set { if (radioButtonRoot == null || value || optionCanBeNone || !mStarted) Set(value); }
-	}
-
-	/// <summary>
-	/// Legacy functionality support -- set the radio button root if the 'option' value was 'true'.
-	/// </summary>
-
-	void Awake ()
-	{
-		mTrans = transform;
-
-		if (checkSprite != null) checkSprite.alpha = startsChecked ? 1f : 0f;
-
-		if (option)
-		{
-			option = false;
-			if (radioButtonRoot == null) radioButtonRoot = mTrans.parent;
-		}
-	}
+	public bool isChecked { get { return mChecked; } set { if (!option || value) Set(value); } }
 
 	/// <summary>
 	/// Activate the initial state.
@@ -63,9 +30,9 @@ public class UICheckbox : MonoBehaviour
 
 	void Start ()
 	{
+		mTrans = transform;
 		if (eventReceiver == null) eventReceiver = gameObject;
 		mChecked = !startsChecked;
-		mStarted = true;
 		Set(startsChecked);
 	}
 
@@ -81,24 +48,13 @@ public class UICheckbox : MonoBehaviour
 
 	void Set (bool state)
 	{
-		if (!mStarted)
-		{
-			mChecked = state;
-			startsChecked = state;
-			if (checkSprite != null) checkSprite.alpha = state ? 1f : 0f;
-		}
-		else if (mChecked != state)
+		if (mChecked != state)
 		{
 			// Uncheck all other checkboxes
-			if (radioButtonRoot != null && state)
+			if (option && state)
 			{
-				UICheckbox[] cbs = radioButtonRoot.GetComponentsInChildren<UICheckbox>(true);
-
-				for (int i = 0, imax = cbs.Length; i < imax; ++i)
-				{
-					UICheckbox cb = cbs[i];
-					if (cb != this && cb.radioButtonRoot == radioButtonRoot) cb.Set(false);
-				}
+				UICheckbox[] cbs = mTrans.parent.GetComponentsInChildren<UICheckbox>();
+				foreach (UICheckbox cb in cbs) if (cb != this) cb.Set(false);
 			}
 
 			// Remember the state
@@ -115,7 +71,6 @@ public class UICheckbox : MonoBehaviour
 			// Send out the event notification
 			if (eventReceiver != null && !string.IsNullOrEmpty(functionName))
 			{
-				current = this;
 				eventReceiver.SendMessage(functionName, mChecked, SendMessageOptions.DontRequireReceiver);
 			}
 

@@ -1,26 +1,22 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Tween the object's position.
 /// </summary>
 
 [AddComponentMenu("NGUI/Tween/Position")]
-public class TweenPosition : UITweener
+public class TweenPosition : NTweener
 {
 	public Vector3 from;
 	public Vector3 to;
 
 	Transform mTrans;
 
-	public Transform cachedTransform { get { if (mTrans == null) mTrans = transform; return mTrans; } }
-	public Vector3 position { get { return cachedTransform.localPosition; } set { cachedTransform.localPosition = value; } }
+	public Vector3 position { get { return mTrans.localPosition; } set { mTrans.localPosition = value; } }
 
-	override protected void OnUpdate (float factor) { cachedTransform.localPosition = from * (1f - factor) + to * factor; }
+	void Awake () { mTrans = transform; }
+
+	override protected void OnUpdate (float factor) { mTrans.localPosition = from * (1f - factor) + to * factor; }
 
 	/// <summary>
 	/// Start the tweening operation.
@@ -28,7 +24,7 @@ public class TweenPosition : UITweener
 
 	static public TweenPosition Begin (GameObject go, float duration, Vector3 pos)
 	{
-		TweenPosition comp = UITweener.Begin<TweenPosition>(go, duration);
+		TweenPosition comp = NTweener.Begin<TweenPosition>(go, duration);
 		comp.from = comp.position;
 		comp.to = pos;
 		return comp;

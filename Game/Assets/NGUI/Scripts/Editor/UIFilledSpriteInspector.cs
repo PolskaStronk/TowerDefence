@@ -1,8 +1,3 @@
-//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
 using UnityEngine;
 using UnityEditor;
 
@@ -19,23 +14,22 @@ public class UIFilledSpriteInspector : UISpriteInspector
 
 		if (!base.OnDrawProperties()) return false;
 
-		if ((int)sprite.fillDirection > (int)UIFilledSprite.FillDirection.Radial360)
+		UIFilledSprite.FillDirection fillDirection = (UIFilledSprite.FillDirection)EditorGUILayout.EnumPopup("Fill Dir", sprite.fillDirection);
+
+		if (sprite.fillDirection != fillDirection)
 		{
-			sprite.fillDirection = UIFilledSprite.FillDirection.Horizontal;
-			EditorUtility.SetDirty(sprite);
+			Undo.RegisterUndo(mSprite, "Sprite Change");
+			sprite.fillDirection = fillDirection;
+			EditorUtility.SetDirty(mSprite.gameObject);
 		}
 
-		UIFilledSprite.FillDirection fillDirection = (UIFilledSprite.FillDirection)EditorGUILayout.EnumPopup("Fill Dir", sprite.fillDirection);
-		float fillAmount = EditorGUILayout.Slider("Fill Amount", sprite.fillAmount, 0f, 1f);
-		bool invert = EditorGUILayout.Toggle("Invert Fill", sprite.invert);
+		float fillAmount = EditorGUILayout.FloatField("Fill Amount", sprite.fillAmount);
 
-		if (sprite.fillDirection != fillDirection || sprite.fillAmount != fillAmount || sprite.invert != invert)
+		if (sprite.fillAmount != fillAmount)
 		{
-			NGUIEditorTools.RegisterUndo("Sprite Change", mSprite);
-			sprite.fillDirection = fillDirection;
+			Undo.RegisterUndo(mSprite, "Sprite Change");
 			sprite.fillAmount = fillAmount;
-			sprite.invert = invert;
-			EditorUtility.SetDirty(sprite);
+			EditorUtility.SetDirty(mSprite.gameObject);
 		}
 		return true;
 	}

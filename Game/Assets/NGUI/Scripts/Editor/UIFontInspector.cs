@@ -1,11 +1,5 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
 
 /// <summary>
 /// Inspector class used to view and edit UIFonts.
@@ -21,48 +15,28 @@ public class UIFontInspector : Editor
 		Font,
 	}
 
-	enum FontType
-	{
-		Normal,
-		Reference,
-	}
-
 	static View mView = View.Atlas;
 	static bool mUseShader = false;
-	
 	UIFont mFont;
-	FontType mType = FontType.Normal;
-	UIFont mReplacement = null;
-
-	void OnSelectFont (MonoBehaviour obj)
-	{
-		// Undo doesn't work correctly in this case... so I won't bother.
-		//NGUIEditorTools.RegisterUndo("Font Change");
-		//NGUIEditorTools.RegisterUndo("Font Change", mFont);
-
-		mFont.replacement = obj as UIFont;
-		mReplacement = mFont.replacement as UIFont;
-		UnityEditor.EditorUtility.SetDirty(mFont);
-		if (mReplacement == null) mType = FontType.Normal;
-	}
 
 	void OnSelectAtlas (MonoBehaviour obj)
 	{
 		if (mFont != null)
 		{
-			NGUIEditorTools.RegisterUndo("Font Atlas", mFont);
+			Undo.RegisterUndo(mFont, "Font Atlas");
 			mFont.atlas = obj as UIAtlas;
+			EditorUtility.SetDirty(mFont);
 			MarkAsChanged();
 		}
 	}
 
 	void MarkAsChanged ()
 	{
-		List<UILabel> labels = NGUIEditorTools.FindInScene<UILabel>();
+		UILabel[] labels = Resources.FindObjectsOfTypeAll(typeof(UILabel)) as UILabel[];
 
 		foreach (UILabel lbl in labels)
 		{
-			if (UIFont.CheckIfRelated(lbl.font, mFont))
+			if (lbl.font == mFont)
 			{
 				lbl.font = null;
 				lbl.font = mFont;
@@ -72,73 +46,24 @@ public class UIFontInspector : Editor
 
 	override public void OnInspectorGUI ()
 	{
-		mFont = target as UIFont;
 		EditorGUIUtility.LookLikeControls(80f);
-
 		NGUIEditorTools.DrawSeparator();
 
-		if (mFont.replacement != null)
-		{
-			mType = FontType.Reference;
-			mReplacement = mFont.replacement as UIFont;
-		}
+		mFont = target as UIFont;
 
-		FontType after = (FontType)EditorGUILayout.EnumPopup("Font Type", mType);
-
-		if (mType != after)
-		{
-			if (after == FontType.Normal)
-			{
-				OnSelectFont(null);
-			}
-			else
-			{
-				mType = FontType.Reference;
-			}
-		}
-
-		if (mType == FontType.Reference)
-		{
-			ComponentSelector.Draw<UIFont>(mFont.replacement as UIFont, OnSelectFont);
-
-			NGUIEditorTools.DrawSeparator();
-			GUILayout.Label("You can have one font simply point to\n" +
-				"another one. This is useful if you want to be\n" +
-				"able to quickly replace the contents of one\n" +
-				"font with another one, for example for\n" +
-				"swapping an SD font with an HD one, or\n" +
-				"replacing an English font with a Chinese\n" +
-				"one. All the labels referencing this font\n" +
-				"will update their references to the new one.");
-
-			if (mReplacement != mFont && mFont.replacement != mReplacement)
-			{
-				NGUIEditorTools.RegisterUndo("Font Change", mFont);
-				mFont.replacement = mReplacement;
-				UnityEditor.EditorUtility.SetDirty(mFont);
-			}
-			return;
-		}
-
-		NGUIEditorTools.DrawSeparator();
-		ComponentSelector.Draw<UIAtlas>(mFont.atlas as UIAtlas, OnSelectAtlas);
+		ComponentSelector.Draw<UIAtlas>(mFont.atlas, OnSelectAtlas);
 
 		if (mFont.atlas != null)
 		{
-			if (mFont.bmFont.LegacyCheck())
-			{
-				Debug.Log(mFont.name + " uses a legacy font data structure. Upgrading, please save.");
-				EditorUtility.SetDirty(mFont);
-			}
-
 			if (mFont.bmFont.isValid)
 			{
-				string spriteName = UISlicedSpriteInspector.SpriteField(mFont.atlas as UIAtlas, mFont.spriteName);
+				string spriteName = UISlicedSpriteInspector.SpriteField(mFont.atlas, mFont.spriteName);
 
 				if (mFont.spriteName != spriteName)
 				{
-					NGUIEditorTools.RegisterUndo("Font Sprite", mFont);
+					Undo.RegisterUndo(mFont, "Font Sprite");
 					mFont.spriteName = spriteName;
+					EditorUtility.SetDirty(mFont);
 				}
 			}
 		}
@@ -149,8 +74,9 @@ public class UIFontInspector : Editor
 
 			if (mFont.material != mat)
 			{
-				NGUIEditorTools.RegisterUndo("Font Material", mFont);
+				Undo.RegisterUndo(mFont, "Font Material");
 				mFont.material = mat;
+				EditorUtility.SetDirty(mFont);
 			}
 		}
 
@@ -162,10 +88,11 @@ public class UIFontInspector : Editor
 
 			if (data != null)
 			{
-				NGUIEditorTools.RegisterUndo("Import Font Data", mFont);
+				Undo.RegisterUndo(mFont, "Import Font Data");
 				BMFontReader.Load(mFont.bmFont, NGUITools.GetHierarchy(mFont.gameObject), data.bytes);
-				mFont.MarkAsDirty();
+				mFont.Refresh();
 				resetWidthHeight = true;
+				EditorUtility.SetDirty(mFont);
 				Debug.Log("Imported " + mFont.bmFont.glyphCount + " characters");
 			}
 		}
@@ -220,8 +147,9 @@ public class UIFontInspector : Editor
 
 					if (mFont.uvRect != uvRect)
 					{
-						NGUIEditorTools.RegisterUndo("Font Pixel Rect", mFont);
+						Undo.RegisterUndo(mFont, "Font Pixel Rect");
 						mFont.uvRect = uvRect;
+						EditorUtility.SetDirty(mFont);
 					}
 				}
 
@@ -238,9 +166,10 @@ public class UIFontInspector : Editor
 
 					if (mFont.horizontalSpacing != x || mFont.verticalSpacing != y)
 					{
-						NGUIEditorTools.RegisterUndo("Font Spacing", mFont);
+						Undo.RegisterUndo(mFont, "Font Spacing");
 						mFont.horizontalSpacing = x;
 						mFont.verticalSpacing = y;
+						EditorUtility.SetDirty(mFont);
 					}
 				}
 				GUILayout.EndHorizontal();

@@ -1,9 +1,4 @@
-﻿//----------------------------------------------
-//            NGUI: Next-Gen UI kit
-// Copyright © 2011-2012 Tasharen Entertainment
-//----------------------------------------------
-
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -14,17 +9,21 @@ using System.Collections.Generic;
 [AddComponentMenu("NGUI/UI/Sprite (Sliced)")]
 public class UISlicedSprite : UISprite
 {
-	[HideInInspector][SerializeField] bool mFillCenter = true;
+#if UNITY_FLASH // Unity 3.5b6 is bugged when SerializeField is mixed with prefabs (after LoadLevel)
+	public bool mFillCenter = true;
+#else
+	[SerializeField] bool mFillCenter = true;
+#endif
 
-	protected Rect mInner;
-	protected Rect mInnerUV;
-	protected Vector3 mScale = Vector3.one;
+	Rect mInner;
+	Rect mInnerUV;
+	Vector3 mScale = Vector3.one;
 
 	/// <summary>
 	/// Inner set of UV coordinates.
 	/// </summary>
 
-	public Rect innerUV { get { UpdateUVs(false); return mInnerUV; } }
+	public Rect innerUV { get { UpdateUVs(); return mInnerUV; } }
 
 	/// <summary>
 	/// Whether the center part of the sprite will be filled or not. Turn it off if you want only to borders to show up.
@@ -33,50 +32,22 @@ public class UISlicedSprite : UISprite
 	public bool fillCenter { get { return mFillCenter; } set { if (mFillCenter != value) { mFillCenter = value; MarkAsChanged(); } } }
 
 	/// <summary>
-	/// Sliced sprites generally have a border.
-	/// </summary>
-
-	public override Vector4 border
-	{
-		get
-		{
-			UIAtlas.Sprite sp = sprite;
-			if (sp == null) return Vector2.zero;
-
-			Rect outer = sp.outer;
-			Rect inner = sp.inner;
-
-			Texture tex = mainTexture;
-
-			if (atlas.coordinates == UIAtlas.Coordinates.TexCoords && tex != null)
-			{
-				outer = NGUIMath.ConvertToPixels(outer, tex.width, tex.height, true);
-				inner = NGUIMath.ConvertToPixels(inner, tex.width, tex.height, true);
-			}
-			return new Vector4(inner.xMin - outer.xMin, inner.yMin - outer.yMin, outer.xMax - inner.xMax, outer.yMax - inner.yMax) * atlas.pixelSize;
-		}
-	}
-
-	/// <summary>
 	/// Update the texture UVs used by the widget.
 	/// </summary>
 
-	override public void UpdateUVs (bool force)
+	override public void UpdateUVs()
 	{
-		if (cachedTransform.localScale != mScale)
-		{
-			mScale = cachedTransform.localScale;
-			mChanged = true;
-		}
+		Init();
 
-		if (sprite != null && (force || mInner != mSprite.inner || mOuter != mSprite.outer))
-		{
-			Texture tex = mainTexture;
+		Texture tex = mainTexture;
 
-			if (tex != null)
+		if (tex != null && sprite != null)
+		{
+			if (mInner != mSprite.inner || mOuter != mSprite.outer || cachedTransform.localScale != mScale)
 			{
 				mInner = mSprite.inner;
 				mOuter = mSprite.outer;
+				mScale = cachedTransform.localScale;
 
 				mInnerUV = mInner;
 				mOuterUV = mOuter;
@@ -86,6 +57,7 @@ public class UISlicedSprite : UISprite
 					mOuterUV = NGUIMath.ConvertToTexCoords(mOuterUV, tex.width, tex.height);
 					mInnerUV = NGUIMath.ConvertToTexCoords(mInnerUV, tex.width, tex.height);
 				}
+				mChanged = true;
 			}
 		}
 	}
@@ -133,11 +105,10 @@ public class UISlicedSprite : UISprite
 
 		if (tex != null)
 		{
-			float pixelSize		= atlas.pixelSize;
-			float borderLeft	= (mInnerUV.xMin - mOuterUV.xMin) * pixelSize;
-			float borderRight	= (mOuterUV.xMax - mInnerUV.xMax) * pixelSize;
-			float borderTop		= (mInnerUV.yMax - mOuterUV.yMax) * pixelSize;
-			float borderBottom	= (mOuterUV.yMin - mInnerUV.yMin) * pixelSize;
+			float borderLeft	= mInnerUV.xMin - mOuterUV.xMin;
+			float borderRight	= mOuterUV.xMax - mInnerUV.xMax;
+			float borderTop		= mOuterUV.yMin - mInnerUV.yMin;
+			float borderBottom	= mInnerUV.yMax - mOuterUV.yMax;
 
 			Vector3 scale = cachedTransform.localScale;
 			scale.x = Mathf.Max(0f, scale.x);
