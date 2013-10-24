@@ -49,7 +49,7 @@ public abstract class MonsterObject : TDObject {
 	}
 	
 	public void MoveToNextCell() {
-		Vector2 toAdd;
+		Vector2 toAdd = new Vector2 (0,0);
 		
 		switch (path[currentPathCell]) {
 		case Direction.Up:
