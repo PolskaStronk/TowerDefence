@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public abstract class TowerObject : TDObject {
 
-	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser};
+	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser, None};
 	public TowerType type;
 	public int attackRange;
 	
