@@ -27,5 +27,6 @@ public class Soldier : MonsterObject {
 	
 	public override void OnDeath () {
 		Debug.Log("DEAD");
+		GameObject.Destroy(gameObject);
 	}
 }

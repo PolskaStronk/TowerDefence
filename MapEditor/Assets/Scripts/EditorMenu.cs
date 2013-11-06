@@ -126,7 +126,7 @@ public class EditorMenu : MonoBehaviour {
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;
 			if (Physics.Raycast(ray, out hit)) {
-				Debug.Log(hit.collider.gameObject.name);
+				//Debug.Log(hit.collider.gameObject.name);
 				hit.collider.gameObject.renderer.material.mainTexture = Resources.Load("Textures/texture" + nowTextureNumber.ToString()) as Texture;
 			}
 		}
