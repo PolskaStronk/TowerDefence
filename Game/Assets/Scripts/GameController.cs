@@ -11,16 +11,80 @@ public class GameController : MonoBehaviour {
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
 	public static int height = 20, width = 20;
-	//public static List <MonsterObject>[,] plane;
 	
-	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun;
+	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
-	private static GameObject planePrefab;
+	private static GameObject planePrefab; //???
 	
-	void AddedTower(Vector2 position, TowerObject.TowerType type) {
-		
-		
+	/*----Radomir---*/
+	private struct pair {
+		public int first, second;
 	}
+	private static pair make_pair( int x, int y ) {
+		pair a;
+		a.first = x;
+		a.second = y;
+		return a;
+	}
+	
+	public enum Direction {Up, Down, Left, Right, None};
+	public static int number_of_paths = 1;
+	public static Direction[,,] path, new_path; //[height, width, path]
+	private static List <pair>[] enter; //[path]
+	private static List <pair>[] exit; //[path]
+	
+	void find_path() {
+		for( int x = 0; x < height; x++ )
+			for( int y = 0; y < width; y++ )
+				for( int i = 0; i < number_of_paths; i++ ) new_path[x, y, i] = Direction.None;
+		
+		//Debug.Log(number_of_paths.ToString());
+		for( int i = 0; i < number_of_paths; i++ ) {
+			Queue <pair> queue_for_bfs = new Queue <pair>();
+			foreach (pair exit_ in exit[i]) {
+				queue_for_bfs.Enqueue( exit_ );
+				//new_path[exit_.first, exit_.second, i] = ( exit_.second != 0 )? Direction.Up: Direction.Down;
+				//Debug.Log (exit_.first.ToString() + " " + exit_.second.ToString());
+			}
+			
+			while( queue_for_bfs.Count != 0 )
+			{
+				int kol_on_that_step = queue_for_bfs.Count;
+				for( int j = 0; j < kol_on_that_step; j++ ) {
+					pair pos = queue_for_bfs.Dequeue();
+					
+					if( 0 < pos.first && new_path[pos.first - 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first - 1] == TowerObject.TowerType.None ) {
+						new_path[pos.first - 1, pos.second, i] = Direction.Right; 
+						queue_for_bfs.Enqueue( make_pair( pos.first - 1, pos.second ) );
+					}
+					if( pos.first + 1 < height && new_path[pos.first + 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first + 1] == TowerObject.TowerType.None ) {
+						new_path[pos.first + 1, pos.second, i] = Direction.Left; 
+						queue_for_bfs.Enqueue( make_pair( pos.first + 1, pos.second ) );
+					}
+					if( 0 < pos.second && new_path[pos.first, pos.second - 1, i] == Direction.None && towersMap[pos.second - 1, pos.first] == TowerObject.TowerType.None ) {
+						new_path[pos.first, pos.second - 1, i] = Direction.Down; 
+						queue_for_bfs.Enqueue( make_pair( pos.first, pos.second - 1 ) );
+					}
+					if( pos.second + 1 < width && new_path[pos.first, pos.second + 1, i] == Direction.None && towersMap[pos.second + 1, pos.first] == TowerObject.TowerType.None ) {
+						new_path[pos.first, pos.second + 1, i] = Direction.Up; 
+						queue_for_bfs.Enqueue( make_pair( pos.first, pos.second + 1 ) );
+					}
+				}
+			}
+		}
+	}
+	
+	bool all_paths_are_correct() {
+		foreach(MonsterObject monster_ in monsters) {
+			if( new_path[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
+		}
+		for( int i = 0; i < number_of_paths; i++ )
+			foreach(pair enter_ in enter[i]) {
+				if( new_path[enter_.first, enter_.second, i] == Direction.None ) return false;
+			}
+		return true;
+	}
+	/*--------------*/
 	
 	void CreateSoldier(Vector2 position) {
 		GameObject soldierObject = Instantiate(Resources.Load("Prefabs/Monsters/Soldier") as GameObject) as GameObject;
@@ -33,14 +97,24 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void CreateGunTower(GameObject parent) {
-		GameObject gunObject = Instantiate(Resources.Load("Prefabs/Towers/Gun") as GameObject) as GameObject;
-		gunObject.name = "Gun" + towers.Count;
-		GunTower result = new GunTower (gunObject);
-		result.position = new Vector2 (parent.transform.position.x + width/2, parent.transform.position.y + height/2);
-		gunObject.transform.position = parent.transform.position - new Vector3(0,0,1);
-		towers.Add(result);
-		towersMap[(int)result.position.y,(int)result.position.x] = TowerObject.TowerType.Gun;
-		AddedTower(result.position,TowerObject.TowerType.Gun);
+		towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.Gun;
+		
+		find_path();
+		if( all_paths_are_correct() ) {
+			GameObject gunObject = Instantiate(Resources.Load("Prefabs/Towers/Gun") as GameObject) as GameObject;
+			gunObject.name = "Gun" + towers.Count;
+			GunTower result = new GunTower (gunObject);
+			result.position = new Vector2 (parent.transform.position.x + width/2, parent.transform.position.y + height/2);
+			towers.Add(result);
+			gunObject.transform.position = parent.transform.position - new Vector3(0,0,1);
+			
+			for( int x = 0; x < height; x++ )
+				for( int y = 0; y < width; y++ )
+					for( int i = 0; i < number_of_paths; i++ )
+						path[x, y, i] = new_path[x, y, i];
+		} else {
+			towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.None;
+		}
 	}
 	
 	void CreateTower(GameObject parent) {
@@ -74,11 +148,45 @@ public class GameController : MonoBehaviour {
 	void Start () {
 		
 		map = new int [height, width];
+		towersMap = new TowerObject.TowerType[height, width];
+		for( int x = 0; x < height; x++ )
+			for( int y = 0; y < width; y++ )
+				towersMap[x, y] = TowerObject.TowerType.None;
+		/*------only now------*/
+		for( int i = 0; i < height; i++ )
+			for( int j = 0; j < width; j++ ) map[i, j] = 10;
+		exit = new List <pair>[number_of_paths];
+		enter = new List <pair>[number_of_paths];
+		exit[0]= new List <pair>();
+		enter[0] = new List <pair>();
+		enter[0].Add( make_pair( 0, 0 ) );
+		exit[0].Add( make_pair( height - 1, width - 1 ) );
+		new_path = new Direction[height, width, number_of_paths];
+		path = new Direction[height, width, number_of_paths];
+		
+		find_path();
+		for( int x = 0; x < height; x++ )
+			for( int y = 0; y < width; y++ )
+				for( int i = 0; i < number_of_paths; i++ )
+					path[x, y, i] = new_path[x, y, i];
+		
+		for( int x = 0; x < height; x++ ) {
+			string s = "";
+			for( int y = 0; y < width; y++ ) s += path[x, y, 0] + " ";
+//			Debug.Log(s);
+		}
+		
+		/*--------------------*/
+		
 		towersMap = new TowerObject.TowerType [height, width];
 		CreateLevel();
 		
-		CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));
-		CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));
+		/*Queue q = new Queue();
+		q*/
+		
+		//CreateSoldier(new Vector2(0,0));
+		/*CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));
+		CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));*/
 	}
 	
 	
@@ -98,17 +206,17 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void Update () {
-	
+		
+		if( Random.value < 0.01 ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
+		//Debug.Log(monsters.Count.ToString());
 		AddTowersControll();
-		
-		//plane = new List <MonsterObject>[height, width];
-		
 		
 		foreach (TowerObject tower_ in towers) {
 			tower_.Update();	
 		}
 		
 		foreach (MonsterObject monster_ in monsters) {
+			//if( monster_.path == -1 ) monsters.Remove( monster_ );
 			monster_.Update();	
 		}
 		

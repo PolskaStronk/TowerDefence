@@ -8,11 +8,10 @@ public abstract class MonsterObject : TDObject {
 	public MonsterType type;
 	public float speed = 1;
 	public bool isattackedNow = false;
+	public int path;
 	
 	private List <Effect.EffectType> effects = new List<Effect.EffectType> ();
 	
-	private enum Direction {Up, Down, Left, Right};
-	private List <Direction> path = new List<Direction> ();
 	private Vector2 targetPosition;
 	private int currentPathCell = 0;
 	
@@ -43,31 +42,30 @@ public abstract class MonsterObject : TDObject {
 			return;
 		
 		health -= recievedDamage;
-		Debug.Log(health + " " + Time.time);
+//		Debug.Log(health + " " + Time.time);
 		if (health <= 0) 
 			OnDeath();
 	}
-	
+	private float last = 0.5f;
 	public void MoveToNextCell() {
-		Vector2 toAdd = new Vector2 (0,0);
 		
-		switch (path[currentPathCell]) {
-		case Direction.Up:
-			toAdd = new Vector2 (0,1);
-			break;
-		case Direction.Down:
-			toAdd = new Vector2 (0,-1);
-			break;
-		case Direction.Left:
-			toAdd = new Vector2 (-1,0);
-			break;
-		case Direction.Right:
-			toAdd = new Vector2 (1,1);
-			break;
+		if( Time.time - last >= 0.5 ) {
+			last = Time.time;
+			switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
+				case( GameController.Direction.Left ): this.position.x--;
+				break;
+				
+				case( GameController.Direction.Right ): this.position.x++;
+				break;
+				
+				case( GameController.Direction.Up ): this.position.y--;
+				break;
+				
+				case( GameController.Direction.Down ): this.position.y++;
+				break;
+			}
+			gameObject.transform.position = new Vector3( this.position.x - GameController.width/2, this.position.y - GameController.height/2, -2 );
 		}
-		
-		targetPosition = position + toAdd;
-		currentPathCell++;
 	}
 	
 	public abstract void Update();
