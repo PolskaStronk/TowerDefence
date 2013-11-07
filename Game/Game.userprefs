@@ -1,6 +1,17 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GameController.cs">
+    <Files>
+      <File FileName="E:\TowerDefence\Game\Assets\Scripts\Classes\MonsterObject.cs" Line="53" Column="2" />
+      <File FileName="Assets\Scripts\GameController.cs" Line="233" Column="27" />
+      <File FileName="Assets\Scripts\Classes\MonsterObject.cs" Line="75" Column="23" />
+      <File FileName="Assets\Scripts\Classes\Monsters\Soldier.cs" Line="34" Column="3" />
+      <File FileName="Assets\Scripts\Classes\Effect.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Classes\TDObject.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Classes\TowerObject.cs" Line="72" Column="49" />
+      <File FileName="Assets\Scripts\Classes\Towers\GunTower.cs" Line="28" Column="27" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

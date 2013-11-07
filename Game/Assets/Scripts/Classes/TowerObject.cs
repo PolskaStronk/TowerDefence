@@ -8,6 +8,8 @@ public abstract class TowerObject : TDObject {
 	public TowerType type;
 	public int attackRange;
 	
+	protected bool isDestroyed = false;
+	
 	public GameObject gameObject;
 	
 	public List <int> groups = new List <int> ();
@@ -61,6 +63,13 @@ public abstract class TowerObject : TDObject {
 	}
 	
 	public void MoveToNextCell() {
+		
+	}
+	
+	public void DestroyTower() {
+		isDestroyed = true;
+		GameObject.Destroy(gameObject);
+		GameController.towersMap[(int)position.y,(int)position.x] = TowerType.None;
 		
 	}
 	

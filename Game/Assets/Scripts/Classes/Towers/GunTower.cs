@@ -18,12 +18,14 @@ public class GunTower : TowerObject {
 	
 	private void Start() {
 		health = 100;
-		damage = 0;
-		attackSpeed = 1;
+		damage = 1;
+		attackSpeed = 2;
 		attackRange = 2;
 	}
 	
 	public override void Update() {
+		
+		if (isDestroyed) return;
 		
 		MonsterObject target = FindEnemy();
 		

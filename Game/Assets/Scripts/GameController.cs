@@ -6,6 +6,7 @@ public class GameController : MonoBehaviour {
 	
 	public static int[,] map;
 	public static TowerObject.TowerType [,] towersMap;
+	public static TowerObject [,] towersLinkMap;
 	
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
@@ -76,7 +77,7 @@ public class GameController : MonoBehaviour {
 	
 	bool all_paths_are_correct() {
 		foreach(MonsterObject monster_ in monsters) {
-			if( new_path[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
+			if( monster_.path != -1 && new_path[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
 		}
 		for( int i = 0; i < number_of_paths; i++ )
 			foreach(pair enter_ in enter[i]) {
@@ -102,11 +103,13 @@ public class GameController : MonoBehaviour {
 		find_path();
 		if( all_paths_are_correct() ) {
 			GameObject gunObject = Instantiate(Resources.Load("Prefabs/Towers/Gun") as GameObject) as GameObject;
-			gunObject.name = "Gun" + towers.Count;
+			gunObject.name = "GunTower" + towers.Count;
 			GunTower result = new GunTower (gunObject);
 			result.position = new Vector2 (parent.transform.position.x + width/2, parent.transform.position.y + height/2);
 			towers.Add(result);
 			gunObject.transform.position = parent.transform.position - new Vector3(0,0,1);
+			
+			towersLinkMap[(int)result.position.y,(int)result.position.x] = result; 
 			
 			for( int x = 0; x < height; x++ )
 				for( int y = 0; y < width; y++ )
@@ -179,6 +182,7 @@ public class GameController : MonoBehaviour {
 		/*--------------------*/
 		
 		towersMap = new TowerObject.TowerType [height, width];
+		towersLinkMap = new TowerObject [height,width];
 		CreateLevel();
 		
 		/*Queue q = new Queue();
@@ -203,11 +207,30 @@ public class GameController : MonoBehaviour {
 			}
 		}
 		
+		if(Input.GetMouseButton(1)){
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			if (Physics.Raycast(ray, out hit, 100)) {
+				if (hit.collider.gameObject.name.Contains ("Tower")) {
+					
+					towersLinkMap[(int)hit.collider.gameObject.transform.position.y + height/2, 
+						(int)hit.collider.gameObject.transform.position.x + width/2].DestroyTower();
+					find_path();
+					for( int x = 0; x < height; x++ )
+						for( int y = 0; y < width; y++ )
+							for( int i = 0; i < number_of_paths; i++ )
+								path[x, y, i] = new_path[x, y, i];
+				}
+				//hit.collider.gameObject.renderer.material.mainTexture = Resources.Load("Textures/texture" + nowTextureNumber.ToString()) as Texture;
+			}
+		}
+		
+		
 	}
 	
 	void Update () {
 		
-		if( Random.value < 0.01 ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
+		if( Random.value < 0.03f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
 		//Debug.Log(monsters.Count.ToString());
 		AddTowersControll();
 		

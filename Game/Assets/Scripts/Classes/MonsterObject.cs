@@ -13,6 +13,8 @@ public abstract class MonsterObject : TDObject {
 	private List <Effect.EffectType> effects = new List<Effect.EffectType> ();
 	
 	private Vector2 targetPosition;
+	private Vector2 direction;
+	
 	private int currentPathCell = 0;
 	
 	public GameObject gameObject;
