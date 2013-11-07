@@ -17,7 +17,6 @@ public class GameController : MonoBehaviour {
 	
 	private static GameObject planePrefab; //???
 	
-	/*----Radomir---*/
 	private struct pair {
 		public int first, second;
 	}
@@ -39,13 +38,10 @@ public class GameController : MonoBehaviour {
 			for( int y = 0; y < width; y++ )
 				for( int i = 0; i < number_of_paths; i++ ) new_path[x, y, i] = Direction.None;
 		
-		//Debug.Log(number_of_paths.ToString());
 		for( int i = 0; i < number_of_paths; i++ ) {
 			Queue <pair> queue_for_bfs = new Queue <pair>();
 			foreach (pair exit_ in exit[i]) {
 				queue_for_bfs.Enqueue( exit_ );
-				//new_path[exit_.first, exit_.second, i] = ( exit_.second != 0 )? Direction.Up: Direction.Down;
-				//Debug.Log (exit_.first.ToString() + " " + exit_.second.ToString());
 			}
 			
 			while( queue_for_bfs.Count != 0 )
@@ -85,15 +81,9 @@ public class GameController : MonoBehaviour {
 				if( new_path[enter_.first, enter_.second, i] == Direction.None ) numberOfIsolated++;
 			}
 			if( numberOfIsolated == enter[i].Count ) return false;
-			numberOfIsolated = 0;
-			foreach(pair exit_ in exit[i]) {
-				if( new_path[exit_.first, exit_.second, i] == Direction.None ) numberOfIsolated++;
-			}
-			if( numberOfIsolated == exit[i].Count ) return false;
 		}
 		return true;
 	}
-	/*--------------*/
 	
 	void CreateSoldier(Vector2 position) {
 		GameObject soldierObject = Instantiate(Resources.Load("Prefabs/Monsters/Soldier") as GameObject) as GameObject;
