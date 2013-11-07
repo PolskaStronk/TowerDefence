@@ -48,7 +48,7 @@ public abstract class MonsterObject : TDObject {
 		if (health <= 0) 
 			OnDeath();
 	}
-	private float last = 0.5f;
+	private float last = Time.time;
 	public void MoveToNextCell() {
 		
 		if( Time.time - last >= 0.5 ) {

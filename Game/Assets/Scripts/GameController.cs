@@ -79,10 +79,18 @@ public class GameController : MonoBehaviour {
 		foreach(MonsterObject monster_ in monsters) {
 			if( monster_.path != -1 && new_path[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
 		}
-		for( int i = 0; i < number_of_paths; i++ )
+		int numberOfIsolated = 0;
+		for( int i = 0; i < number_of_paths; i++ ) {
 			foreach(pair enter_ in enter[i]) {
-				if( new_path[enter_.first, enter_.second, i] == Direction.None ) return false;
+				if( new_path[enter_.first, enter_.second, i] == Direction.None ) numberOfIsolated++;
 			}
+			if( numberOfIsolated == enter[i].Count ) return false;
+			numberOfIsolated = 0;
+			foreach(pair exit_ in exit[i]) {
+				if( new_path[exit_.first, exit_.second, i] == Direction.None ) numberOfIsolated++;
+			}
+			if( numberOfIsolated == exit[i].Count ) return false;
+		}
 		return true;
 	}
 	/*--------------*/
@@ -121,6 +129,19 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void CreateTower(GameObject parent) {
+		pair positionInTowersMap = make_pair( (int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2) );
+		
+		/*-------We can't create tower on enter/exit------*/
+		for( int i = 0; i < number_of_paths; i++ ) {
+			foreach(pair enter_ in enter[i]) {
+				if( enter_.second == positionInTowersMap.first && enter_.first == positionInTowersMap.second ) return;
+			}
+			foreach(pair exit_ in exit[i]) {
+				if( exit_.second == positionInTowersMap.first && exit_.first == positionInTowersMap.second ) return;
+			}
+		}
+		/*------------------------------------------------*/
+		
 		CreateGunTower(parent);
 	}
 	
