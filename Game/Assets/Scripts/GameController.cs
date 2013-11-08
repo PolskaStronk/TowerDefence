@@ -17,68 +17,67 @@ public class GameController : MonoBehaviour {
 	
 	private static GameObject planePrefab; //???
 	
-	private struct pair {
+	private struct Pair {
 		public int first, second;
 	}
-	private static pair make_pair( int x, int y ) {
-		pair a;
+	private static Pair makePair( int x, int y ) {
+		Pair a;
 		a.first = x;
 		a.second = y;
 		return a;
 	}
 	
 	public enum Direction {Up, Down, Left, Right, None};
-	public static int number_of_paths = 1;
-	public static Direction[,,] path, new_path; //[height, width, path]
-	private static List <pair>[] enter; //[path]
-	private static List <pair>[] exit; //[path]
+	public static int numberOfPaths = 1;
+	public static Direction[,,] path, newPath; //[height, width, path]
+	private static List <Pair>[] enter; //[path]
+	private static List <Pair>[] exit; //[path]
 	
-	void find_path() {
+	void FindPath() {
 		for( int x = 0; x < height; x++ )
 			for( int y = 0; y < width; y++ )
-				for( int i = 0; i < number_of_paths; i++ ) new_path[x, y, i] = Direction.None;
+				for( int i = 0; i < numberOfPaths; i++ ) newPath[x, y, i] = Direction.None;
 		
-		for( int i = 0; i < number_of_paths; i++ ) {
-			Queue <pair> queue_for_bfs = new Queue <pair>();
-			foreach (pair exit_ in exit[i]) {
-				queue_for_bfs.Enqueue( exit_ );
+		for( int i = 0; i < numberOfPaths; i++ ) {
+			Queue <Pair> queueForBfs = new Queue <Pair>();
+			foreach (Pair exit_ in exit[i]) {
+				queueForBfs.Enqueue( exit_ );
 			}
 			
-			while( queue_for_bfs.Count != 0 )
+			while( queueForBfs.Count != 0 )
 			{
-				int kol_on_that_step = queue_for_bfs.Count;
-				for( int j = 0; j < kol_on_that_step; j++ ) {
-					pair pos = queue_for_bfs.Dequeue();
+				for( int j = queueForBfs.Count; j > 0; j-- ) {
+					Pair pos = queueForBfs.Dequeue();
 					
-					if( 0 < pos.first && new_path[pos.first - 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first - 1] == TowerObject.TowerType.None ) {
-						new_path[pos.first - 1, pos.second, i] = Direction.Right; 
-						queue_for_bfs.Enqueue( make_pair( pos.first - 1, pos.second ) );
+					if( 0 < pos.first && newPath[pos.first - 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first - 1] == TowerObject.TowerType.None ) {
+						newPath[pos.first - 1, pos.second, i] = Direction.Right; 
+						queueForBfs.Enqueue( makePair( pos.first - 1, pos.second ) );
 					}
-					if( pos.first + 1 < height && new_path[pos.first + 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first + 1] == TowerObject.TowerType.None ) {
-						new_path[pos.first + 1, pos.second, i] = Direction.Left; 
-						queue_for_bfs.Enqueue( make_pair( pos.first + 1, pos.second ) );
+					if( pos.first + 1 < height && newPath[pos.first + 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first + 1] == TowerObject.TowerType.None ) {
+						newPath[pos.first + 1, pos.second, i] = Direction.Left; 
+						queueForBfs.Enqueue( makePair( pos.first + 1, pos.second ) );
 					}
-					if( 0 < pos.second && new_path[pos.first, pos.second - 1, i] == Direction.None && towersMap[pos.second - 1, pos.first] == TowerObject.TowerType.None ) {
-						new_path[pos.first, pos.second - 1, i] = Direction.Down; 
-						queue_for_bfs.Enqueue( make_pair( pos.first, pos.second - 1 ) );
+					if( 0 < pos.second && newPath[pos.first, pos.second - 1, i] == Direction.None && towersMap[pos.second - 1, pos.first] == TowerObject.TowerType.None ) {
+						newPath[pos.first, pos.second - 1, i] = Direction.Down; 
+						queueForBfs.Enqueue( makePair( pos.first, pos.second - 1 ) );
 					}
-					if( pos.second + 1 < width && new_path[pos.first, pos.second + 1, i] == Direction.None && towersMap[pos.second + 1, pos.first] == TowerObject.TowerType.None ) {
-						new_path[pos.first, pos.second + 1, i] = Direction.Up; 
-						queue_for_bfs.Enqueue( make_pair( pos.first, pos.second + 1 ) );
+					if( pos.second + 1 < width && newPath[pos.first, pos.second + 1, i] == Direction.None && towersMap[pos.second + 1, pos.first] == TowerObject.TowerType.None ) {
+						newPath[pos.first, pos.second + 1, i] = Direction.Up; 
+						queueForBfs.Enqueue( makePair( pos.first, pos.second + 1 ) );
 					}
 				}
 			}
 		}
 	}
 	
-	bool all_paths_are_correct() {
+	bool AllPathsAreCorrect() {
 		foreach(MonsterObject monster_ in monsters) {
-			if( monster_.path != -1 && new_path[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
+			if( monster_.path != -1 && newPath[(int)monster_.position.x, (int)monster_.position.y, monster_.path] == Direction.None ) return false;
 		}
 		int numberOfIsolated = 0;
-		for( int i = 0; i < number_of_paths; i++ ) {
-			foreach(pair enter_ in enter[i]) {
-				if( new_path[enter_.first, enter_.second, i] == Direction.None ) numberOfIsolated++;
+		for( int i = 0; i < numberOfPaths; i++ ) {
+			foreach(Pair enter_ in enter[i]) {
+				if( newPath[enter_.first, enter_.second, i] == Direction.None ) numberOfIsolated++;
 			}
 			if( numberOfIsolated == enter[i].Count ) return false;
 		}
@@ -98,8 +97,8 @@ public class GameController : MonoBehaviour {
 	void CreateGunTower(GameObject parent) {
 		towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.Gun;
 		
-		find_path();
-		if( all_paths_are_correct() ) {
+		FindPath();
+		if( AllPathsAreCorrect() ) {
 			GameObject gunObject = Instantiate(Resources.Load("Prefabs/Towers/Gun") as GameObject) as GameObject;
 			gunObject.name = "GunTower" + towers.Count;
 			GunTower result = new GunTower (gunObject);
@@ -111,22 +110,22 @@ public class GameController : MonoBehaviour {
 			
 			for( int x = 0; x < height; x++ )
 				for( int y = 0; y < width; y++ )
-					for( int i = 0; i < number_of_paths; i++ )
-						path[x, y, i] = new_path[x, y, i];
+					for( int i = 0; i < numberOfPaths; i++ )
+						path[x, y, i] = newPath[x, y, i];
 		} else {
 			towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.None;
 		}
 	}
 	
 	void CreateTower(GameObject parent) {
-		pair positionInTowersMap = make_pair( (int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2) );
+		Pair positionInTowersMap = makePair( (int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2) );
 		
 		/*-------We can't create tower on enter/exit------*/
-		for( int i = 0; i < number_of_paths; i++ ) {
-			foreach(pair enter_ in enter[i]) {
+		for( int i = 0; i < numberOfPaths; i++ ) {
+			foreach(Pair enter_ in enter[i]) {
 				if( enter_.second == positionInTowersMap.first && enter_.first == positionInTowersMap.second ) return;
 			}
-			foreach(pair exit_ in exit[i]) {
+			foreach(Pair exit_ in exit[i]) {
 				if( exit_.second == positionInTowersMap.first && exit_.first == positionInTowersMap.second ) return;
 			}
 		}
@@ -169,20 +168,20 @@ public class GameController : MonoBehaviour {
 		/*------only now------*/
 		for( int i = 0; i < height; i++ )
 			for( int j = 0; j < width; j++ ) map[i, j] = 10;
-		exit = new List <pair>[number_of_paths];
-		enter = new List <pair>[number_of_paths];
-		exit[0]= new List <pair>();
-		enter[0] = new List <pair>();
-		enter[0].Add( make_pair( 0, 0 ) );
-		exit[0].Add( make_pair( height - 1, width - 1 ) );
-		new_path = new Direction[height, width, number_of_paths];
-		path = new Direction[height, width, number_of_paths];
+		exit = new List <Pair>[numberOfPaths];
+		enter = new List <Pair>[numberOfPaths];
+		exit[0]= new List <Pair>();
+		enter[0] = new List <Pair>();
+		enter[0].Add( makePair( 0, 0 ) );
+		exit[0].Add( makePair( height - 1, width - 1 ) );
+		newPath = new Direction[height, width, numberOfPaths];
+		path = new Direction[height, width, numberOfPaths];
 		
-		find_path();
+		FindPath();
 		for( int x = 0; x < height; x++ )
 			for( int y = 0; y < width; y++ )
-				for( int i = 0; i < number_of_paths; i++ )
-					path[x, y, i] = new_path[x, y, i];
+				for( int i = 0; i < numberOfPaths; i++ )
+					path[x, y, i] = newPath[x, y, i];
 		
 		for( int x = 0; x < height; x++ ) {
 			string s = "";
@@ -226,11 +225,11 @@ public class GameController : MonoBehaviour {
 					
 					towersLinkMap[(int)hit.collider.gameObject.transform.position.y + height/2, 
 						(int)hit.collider.gameObject.transform.position.x + width/2].DestroyTower();
-					find_path();
+					FindPath();
 					for( int x = 0; x < height; x++ )
 						for( int y = 0; y < width; y++ )
-							for( int i = 0; i < number_of_paths; i++ )
-								path[x, y, i] = new_path[x, y, i];
+							for( int i = 0; i < numberOfPaths; i++ )
+								path[x, y, i] = newPath[x, y, i];
 				}
 				//hit.collider.gameObject.renderer.material.mainTexture = Resources.Load("Textures/texture" + nowTextureNumber.ToString()) as Texture;
 			}
