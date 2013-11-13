@@ -54,19 +54,20 @@ public abstract class MonsterObject : TDObject {
 		if( Time.time - last >= 0.5 ) {
 			last = Time.time;
 			switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
-				case( GameController.Direction.Left ): this.position.x--;
+				case( GameController.Direction.Left ): this.position.y--;
 				break;
 				
-				case( GameController.Direction.Right ): this.position.x++;
+				case( GameController.Direction.Right ): this.position.y++;
 				break;
 				
-				case( GameController.Direction.Up ): this.position.y--;
+				case( GameController.Direction.Up ): this.position.x--;
 				break;
 				
-				case( GameController.Direction.Down ): this.position.y++;
+				case( GameController.Direction.Down ): this.position.x++;
 				break;
 			}
-			gameObject.transform.position = new Vector3( this.position.x - GameController.width/2, this.position.y - GameController.height/2, -2 );
+			Debug.Log( this.position.x.ToString() + " " + this.position.y.ToString() );
+			gameObject.transform.position = new Vector3( this.position.x /*- GameController.width/2*/, this.position.y /*- GameController.height/2*/, -2 );
 		}
 	}
 	

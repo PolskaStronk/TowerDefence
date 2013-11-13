@@ -49,20 +49,20 @@ public class GameController : MonoBehaviour {
 				for( int j = queueForBfs.Count; j > 0; j-- ) {
 					Pair pos = queueForBfs.Dequeue();
 					
-					if( 0 < pos.first && newPath[pos.first - 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first - 1] == TowerObject.TowerType.None ) {
-						newPath[pos.first - 1, pos.second, i] = Direction.Right; 
+					if( 0 < pos.first && newPath[pos.first - 1, pos.second, i] == Direction.None && towersMap[pos.first - 1, pos.second] == TowerObject.TowerType.None ) {
+						newPath[pos.first - 1, pos.second, i] = Direction.Down; 
 						queueForBfs.Enqueue( makePair( pos.first - 1, pos.second ) );
 					}
-					if( pos.first + 1 < height && newPath[pos.first + 1, pos.second, i] == Direction.None && towersMap[pos.second, pos.first + 1] == TowerObject.TowerType.None ) {
-						newPath[pos.first + 1, pos.second, i] = Direction.Left; 
+					if( pos.first + 1 < height && newPath[pos.first + 1, pos.second, i] == Direction.None && towersMap[pos.first + 1, pos.second] == TowerObject.TowerType.None ) {
+						newPath[pos.first + 1, pos.second, i] = Direction.Up; 
 						queueForBfs.Enqueue( makePair( pos.first + 1, pos.second ) );
 					}
-					if( 0 < pos.second && newPath[pos.first, pos.second - 1, i] == Direction.None && towersMap[pos.second - 1, pos.first] == TowerObject.TowerType.None ) {
-						newPath[pos.first, pos.second - 1, i] = Direction.Down; 
+					if( 0 < pos.second && newPath[pos.first, pos.second - 1, i] == Direction.None && towersMap[pos.first, pos.second - 1] == TowerObject.TowerType.None ) {
+						newPath[pos.first, pos.second - 1, i] = Direction.Right; 
 						queueForBfs.Enqueue( makePair( pos.first, pos.second - 1 ) );
 					}
-					if( pos.second + 1 < width && newPath[pos.first, pos.second + 1, i] == Direction.None && towersMap[pos.second + 1, pos.first] == TowerObject.TowerType.None ) {
-						newPath[pos.first, pos.second + 1, i] = Direction.Up; 
+					if( pos.second + 1 < width && newPath[pos.first, pos.second + 1, i] == Direction.None && towersMap[pos.first, pos.second + 1] == TowerObject.TowerType.None ) {
+						newPath[pos.first, pos.second + 1, i] = Direction.Left; 
 						queueForBfs.Enqueue( makePair( pos.first, pos.second + 1 ) );
 					}
 				}
@@ -89,44 +89,44 @@ public class GameController : MonoBehaviour {
 		soldierObject.name = "Soldier" + monsters.Count;
 		Soldier result = new Soldier (soldierObject);
 		result.position = position;
-		soldierObject.transform.position = new Vector3 (result.position.x - width/2, result.position.y - height/2, -2);
+		soldierObject.transform.position = new Vector3 (result.position.x, result.position.y, -2);
 		monsters.Add(result);
 		
 	}
 	
 	void CreateGunTower(GameObject parent) {
-		towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.Gun;
+		towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.Gun;
 		
 		FindPath();
 		if( AllPathsAreCorrect() ) {
 			GameObject gunObject = Instantiate(Resources.Load("Prefabs/Towers/Gun") as GameObject) as GameObject;
 			gunObject.name = "GunTower" + towers.Count;
 			GunTower result = new GunTower (gunObject);
-			result.position = new Vector2 (parent.transform.position.x + width/2, parent.transform.position.y + height/2);
+			result.position = new Vector2 (parent.transform.position.x , parent.transform.position.y );
 			towers.Add(result);
 			gunObject.transform.position = parent.transform.position - new Vector3(0,0,1);
 			
-			towersLinkMap[(int)result.position.y,(int)result.position.x] = result; 
+			towersLinkMap[(int)result.position.x,(int)result.position.y] = result; 
 			
 			for( int x = 0; x < height; x++ )
 				for( int y = 0; y < width; y++ )
 					for( int i = 0; i < numberOfPaths; i++ )
 						path[x, y, i] = newPath[x, y, i];
 		} else {
-			towersMap[(int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2)] = TowerObject.TowerType.None;
+			towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.None;
 		}
 	}
 	
 	void CreateTower(GameObject parent) {
-		Pair positionInTowersMap = makePair( (int)(parent.transform.position.y + height/2),(int)(parent.transform.position.x + width/2) );
+		Pair positionInTowersMap = makePair( (int)(parent.transform.position.x ),(int)(parent.transform.position.y ) );
 		
 		/*-------We can't create tower on enter/exit------*/
 		for( int i = 0; i < numberOfPaths; i++ ) {
 			foreach(Pair enter_ in enter[i]) {
-				if( enter_.second == positionInTowersMap.first && enter_.first == positionInTowersMap.second ) return;
+				if( enter_.second == positionInTowersMap.second && enter_.first == positionInTowersMap.first ) return;
 			}
 			foreach(Pair exit_ in exit[i]) {
-				if( exit_.second == positionInTowersMap.first && exit_.first == positionInTowersMap.second ) return;
+				if( exit_.second == positionInTowersMap.second && exit_.first == positionInTowersMap.first ) return;
 			}
 		}
 		/*------------------------------------------------*/
@@ -141,8 +141,8 @@ public class GameController : MonoBehaviour {
 				towersMap[i,q] = TowerObject.TowerType.None;
 				
 		}
-		map[0,0] = 1;
-		map[height-1,width-1] = -1;
+		map[0,0] = 1; //!!!
+		map[height-1,width-1] = -1; //!!!
 		
 		planePrefab = Resources.Load("Prefabs/Plane") as GameObject;
 		Texture grass = Resources.Load("Textures/Grass") as Texture;
@@ -151,7 +151,7 @@ public class GameController : MonoBehaviour {
 			for (int q = 0; q < width; q++) {
 				GameObject plane_ = Instantiate(planePrefab) as GameObject;
 				plane_.name = "Plane"+i+"|"+q;
-				plane_.transform.position = new Vector3 (q - width/2, i - height/2, -1);
+				plane_.transform.position = new Vector3 (i, q, -1);
 				plane_.renderer.material.mainTexture = grass;
 			
 		}
@@ -167,7 +167,7 @@ public class GameController : MonoBehaviour {
 				towersMap[x, y] = TowerObject.TowerType.None;
 		/*------only now------*/
 		for( int i = 0; i < height; i++ )
-			for( int j = 0; j < width; j++ ) map[i, j] = 10;
+			for( int j = 0; j < width; j++ ) map[i, j] = 10; //!!!
 		exit = new List <Pair>[numberOfPaths];
 		enter = new List <Pair>[numberOfPaths];
 		exit[0]= new List <Pair>();
@@ -183,24 +183,12 @@ public class GameController : MonoBehaviour {
 				for( int i = 0; i < numberOfPaths; i++ )
 					path[x, y, i] = newPath[x, y, i];
 		
-		for( int x = 0; x < height; x++ ) {
-			string s = "";
-			for( int y = 0; y < width; y++ ) s += path[x, y, 0] + " ";
-//			Debug.Log(s);
-		}
-		
 		/*--------------------*/
 		
 		towersMap = new TowerObject.TowerType [height, width];
 		towersLinkMap = new TowerObject [height,width];
 		CreateLevel();
 		
-		/*Queue q = new Queue();
-		q*/
-		
-		//CreateSoldier(new Vector2(0,0));
-		/*CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));
-		CreateSoldier(new Vector2(Random.Range(0,width),Random.Range(0,height)));*/
 	}
 	
 	
@@ -223,8 +211,9 @@ public class GameController : MonoBehaviour {
 			if (Physics.Raycast(ray, out hit, 100)) {
 				if (hit.collider.gameObject.name.Contains ("Tower")) {
 					
-					towersLinkMap[(int)hit.collider.gameObject.transform.position.y + height/2, 
-						(int)hit.collider.gameObject.transform.position.x + width/2].DestroyTower();
+					towersLinkMap[(int)hit.collider.gameObject.transform.position.x, 
+						(int)hit.collider.gameObject.transform.position.y].DestroyTower();
+					towersMap[(int)hit.collider.gameObject.transform.position.x, (int)hit.collider.gameObject.transform.position.y] = TowerObject.TowerType.None;
 					FindPath();
 					for( int x = 0; x < height; x++ )
 						for( int y = 0; y < width; y++ )
@@ -240,8 +229,8 @@ public class GameController : MonoBehaviour {
 	
 	void Update () {
 		
-		if( Random.value < 0.03f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
-		//Debug.Log(monsters.Count.ToString());
+		if( Random.value < 0.02f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
+		
 		AddTowersControll();
 		
 		foreach (TowerObject tower_ in towers) {
