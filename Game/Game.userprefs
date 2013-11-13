@@ -1,14 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GameController.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Menu\MenuSlider.cs">
     <Files>
-      <File FileName="Assets\Scripts\GameController.cs" Line="52" Column="96" />
-      <File FileName="Assets\Scripts\Classes\MonsterObject.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\Monsters\Soldier.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\Effect.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\TDObject.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\TowerObject.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\Towers\GunTower.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Menu\Settings.cs" Line="6" Column="35" />
+      <File FileName="Assets\Scripts\Menu\MenuSlider.cs" Line="107" Column="60" />
+      <File FileName="Assets\Scripts\Menu\TowerParams.cs" Line="14" Column="14" />
+      <File FileName="Assets\NGUI\Scripts\UI\UILabel.cs" Line="57" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
