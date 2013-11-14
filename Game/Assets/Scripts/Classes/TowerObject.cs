@@ -69,7 +69,7 @@ public abstract class TowerObject : TDObject {
 	public void DestroyTower() {
 		isDestroyed = true;
 		GameObject.Destroy(gameObject);
-		GameController.towersMap[(int)position.y,(int)position.x] = TowerType.None;
+		GameController.towersMap[(int)position.x,(int)position.y] = TowerType.None;
 		
 	}
 	

@@ -11,7 +11,7 @@ public class GameController : MonoBehaviour {
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
-	public static int height = 20, width = 20;
+	public static int height = 10, width = 40;
 	
 	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
@@ -189,6 +189,12 @@ public class GameController : MonoBehaviour {
 		towersLinkMap = new TowerObject [height,width];
 		CreateLevel();
 		
+		/*!!!!!!!!!!!*/
+		GameObject camera = GameObject.Find("Main Camera");
+		camera.transform.position = new Vector3( (float)(height - 1) / 2, (float)(width - 1) / 2, -10 );
+		camera.camera.orthographicSize = Mathf.Max( ( height >> 1 ) + ( height & 1 ), ( width >> 1 ) + ( width & 1 ) ) + 1; // int x; x >> 1 == x / 2, x & 1 == x % 2;
+		/*!!!!!!!!!!!*/
+		
 	}
 	
 	
@@ -213,7 +219,7 @@ public class GameController : MonoBehaviour {
 					
 					towersLinkMap[(int)hit.collider.gameObject.transform.position.x, 
 						(int)hit.collider.gameObject.transform.position.y].DestroyTower();
-					towersMap[(int)hit.collider.gameObject.transform.position.x, (int)hit.collider.gameObject.transform.position.y] = TowerObject.TowerType.None;
+					//towersMap[(int)hit.collider.gameObject.transform.position.x, (int)hit.collider.gameObject.transform.position.y] = TowerObject.TowerType.None;
 					FindPath();
 					for( int x = 0; x < height; x++ )
 						for( int y = 0; y < width; y++ )
