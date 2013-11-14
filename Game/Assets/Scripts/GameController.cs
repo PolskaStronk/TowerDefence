@@ -11,11 +11,14 @@ public class GameController : MonoBehaviour {
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
-	public static int height = 10, width = 40;
+	public static int height = 50, width = 50;
 	
 	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
 	private static GameObject planePrefab; //???
+	
+	private float lastTimeKilledMonsterByHand=-1;
+	private float coolDownToKillMonsterByHand = 0.3f;
 	
 	private struct Pair {
 		public int first, second;
@@ -198,7 +201,7 @@ public class GameController : MonoBehaviour {
 	}
 	
 	
-	void AddTowersControll() {
+	void MouseController() {
 		
 		if(Input.GetMouseButton(0)){
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -226,6 +229,15 @@ public class GameController : MonoBehaviour {
 							for( int i = 0; i < numberOfPaths; i++ )
 								path[x, y, i] = newPath[x, y, i];
 				}
+				
+				if (hit.collider.gameObject.name.Contains("Soldier")) {
+					if (lastTimeKilledMonsterByHand + coolDownToKillMonsterByHand < Time.time) {
+						lastTimeKilledMonsterByHand = Time.time;
+						monsters[int.Parse(hit.collider.gameObject.name.Substring(7))].AddDamage(10);
+					}
+					
+				}
+				
 				//hit.collider.gameObject.renderer.material.mainTexture = Resources.Load("Textures/texture" + nowTextureNumber.ToString()) as Texture;
 			}
 		}
@@ -237,7 +249,7 @@ public class GameController : MonoBehaviour {
 		
 		if( Random.value < 0.02f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
 		
-		AddTowersControll();
+		MouseController();
 		
 		foreach (TowerObject tower_ in towers) {
 			tower_.Update();	

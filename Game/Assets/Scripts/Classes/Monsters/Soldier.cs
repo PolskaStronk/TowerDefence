@@ -16,7 +16,7 @@ public class Soldier : MonsterObject {
 	}
 	
 	private void Start() {
-		health = 25;
+		health = 45;
 	}
 	
 	public override void Update() {

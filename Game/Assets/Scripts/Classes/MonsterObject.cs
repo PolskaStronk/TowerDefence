@@ -66,7 +66,7 @@ public abstract class MonsterObject : TDObject {
 				case( GameController.Direction.Down ): this.position.x++;
 				break;
 			}
-			Debug.Log( this.position.x.ToString() + " " + this.position.y.ToString() );
+			//Debug.Log( this.position.x.ToString() + " " + this.position.y.ToString() );
 			gameObject.transform.position = new Vector3( this.position.x /*- GameController.width/2*/, this.position.y /*- GameController.height/2*/, -2 );
 		}
 	}
