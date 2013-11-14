@@ -4,9 +4,11 @@ using System.Collections.Generic;
 
 public abstract class TowerObject : TDObject {
 
-	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser};
+	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser, None};
 	public TowerType type;
 	public int attackRange;
+	
+	protected bool isDestroyed = false;
 	
 	public GameObject gameObject;
 	
@@ -61,6 +63,13 @@ public abstract class TowerObject : TDObject {
 	}
 	
 	public void MoveToNextCell() {
+		
+	}
+	
+	public void DestroyTower() {
+		isDestroyed = true;
+		GameObject.Destroy(gameObject);
+		GameController.towersMap[(int)position.x,(int)position.y] = TowerType.None;
 		
 	}
 	

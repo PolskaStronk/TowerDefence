@@ -25,6 +25,8 @@ public class GunTower : TowerObject {
 	
 	public override void Update() {
 		
+		if (isDestroyed) return;
+		
 		MonsterObject target = FindEnemy();
 		
 		if (target != null && lastAttackTime + 1/attackSpeed <= Time.time) {
