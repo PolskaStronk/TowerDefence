@@ -9,4 +9,5 @@ public abstract class TDObject {
 	public int damage;
 	public int attackSpeed;
 	public Vector2 position;
+	
 }

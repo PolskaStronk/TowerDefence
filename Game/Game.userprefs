@@ -1,6 +1,12 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\GameController.cs">
+    <Files>
+      <File FileName="Assets\Scripts\Classes\MonsterObject.cs" Line="39" Column="22" />
+      <File FileName="Assets\Scripts\Classes\Monsters\Soldier.cs" Line="37" Column="39" />
+      <File FileName="Assets\Scripts\GameController.cs" Line="250" Column="30" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

@@ -17,6 +17,8 @@ public class Soldier : MonsterObject {
 	
 	private void Start() {
 		health = 45;
+		maxHealth = health;
+		CreateHealthBar();
 	}
 	
 	public override void Update() {
@@ -24,13 +26,15 @@ public class Soldier : MonsterObject {
 		
 		
 		MoveToNextCell();
+		SetHealthBarPosition();
 		//Debug.Log ( this.position.x.ToString() + " " + this.position.y.ToString() );
 		//GameController.plane[(int)this.position.x, (int)this.position.y].Add(this);
 	}
 	
 	public override void OnDeath () {
-		Debug.Log("DEAD");
+		//Debug.Log("DEAD");
 		GameObject.Destroy(gameObject);
+		GameObject.Destroy(healthBarObject);
 		path = -1;
 	}
 }
