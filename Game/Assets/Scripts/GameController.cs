@@ -86,6 +86,15 @@ public class GameController : MonoBehaviour {
 			}
 			if( numberOfIsolated == enter[i].Count ) return false;
 		}
+		
+		/*--------!!!!!!!!!---------*/
+		
+		foreach(MonsterObject monster_ in monsters) {
+			if( monster_.path != -1 && newPath[(int)monster_.target.x, (int)monster_.target.y, monster_.path] == Direction.None ) return false;
+		}
+		
+		/*--------------------*/
+		
 		return true;
 	}
 	

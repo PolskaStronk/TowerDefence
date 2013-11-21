@@ -1,11 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Classes\Towers\GunTower.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Classes\MonsterObject.cs">
     <Files>
       <File FileName="Assets\Scripts\Classes\Effect.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\GameController.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Classes\MonsterObject.cs" Line="67" Column="3" />
-      <File FileName="Assets\Scripts\Classes\Monsters\Soldier.cs" Line="32" Column="31" />
+      <File FileName="Assets\Scripts\GameController.cs" Line="99" Column="3" />
+      <File FileName="Assets\Scripts\Classes\MonsterObject.cs" Line="10" Column="36" />
+      <File FileName="Assets\Scripts\Classes\Monsters\Soldier.cs" Line="30" Column="1" />
       <File FileName="Assets\Scripts\Classes\Towers\GunTower.cs" Line="22" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>

@@ -20,6 +20,8 @@ public class Soldier : MonsterObject {
 		goldForDeath = 15;
 		maxHealth = health;
 		CreateHealthBar();
+		target.x = this.position.x;
+		target.y = this.position.y;
 	}
 	
 	public override void Update() {
