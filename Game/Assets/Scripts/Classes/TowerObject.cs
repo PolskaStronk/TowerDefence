@@ -5,8 +5,13 @@ using System.Collections.Generic;
 public abstract class TowerObject : TDObject {
 
 	public enum TowerType {Gun, Missile, Laser, SlowLaser, MegaLaser, None};
+	public static int[] prises = new int [] {10, 20, 15, 15, 100}; 
+	public static int[] sellPrises = new int [] {10000, 10, 7, 6, 50}; 
 	public TowerType type;
 	public int attackRange;
+	
+	public int buyPrise;
+	public int sellPrise;
 	
 	protected bool isDestroyed = false;
 	
@@ -38,6 +43,17 @@ public abstract class TowerObject : TDObject {
 		gameObject = gameObject_;
 	}
 	
+	public List <MonsterObject> FindEnemiesToSplash(MonsterObject start, float range) {
+	
+		List <MonsterObject> result_ = new List<MonsterObject> ();
+		
+		foreach (MonsterObject monster in GameController.monsters)
+				if ( Mathf.Pow(start.position.x - monster.position.x,2) + Mathf.Pow(start.position.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) ) {
+					result_.Add(monster);
+			}
+		return result_;
+	}
+	
 	public MonsterObject FindEnemy() {
 	
 		if (GameController.monsters.Count == 0) 
@@ -45,10 +61,9 @@ public abstract class TowerObject : TDObject {
 		
 		switch (attackType) {
 			case AttackType.Nearest: 
-			foreach (MonsterObject monster in GameController.monsters) 
-				if ( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) <= Mathf.Pow(attackRange, 2) ) {
-				
-				return monster;
+			foreach (MonsterObject monster in GameController.monsters)
+				if ( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) <= Mathf.Pow(attackRange + 0.2f, 2) ) {
+					return monster;
 			}
 			break;
 		}
@@ -70,6 +85,7 @@ public abstract class TowerObject : TDObject {
 		isDestroyed = true;
 		GameObject.Destroy(gameObject);
 		GameController.towersMap[(int)position.x,(int)position.y] = TowerType.None;
+		GameController.money += sellPrises[(int)type];
 		
 	}
 	
