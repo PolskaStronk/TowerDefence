@@ -13,7 +13,7 @@ public class GameController : MonoBehaviour {
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
-	public static int height = 50, width = 50;
+	public static int height = 30, width = 30;
 	
 	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
@@ -86,6 +86,15 @@ public class GameController : MonoBehaviour {
 			}
 			if( numberOfIsolated == enter[i].Count ) return false;
 		}
+		
+		/*--------!!!!!!!!!---------*/
+		
+		foreach(MonsterObject monster_ in monsters) {
+			if( monster_.path != -1 && newPath[(int)monster_.target.x, (int)monster_.target.y, monster_.path] == Direction.None ) return false;
+		}
+		
+		/*--------------------*/
+		
 		return true;
 	}
 	
@@ -122,6 +131,29 @@ public class GameController : MonoBehaviour {
 		}
 	}
 	
+	void CreateMissileTower(GameObject parent) {
+		towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.Missile;
+		
+		FindPath();
+		if( AllPathsAreCorrect() ) {
+			GameObject missileObject = Instantiate(Resources.Load("Prefabs/Towers/Missile") as GameObject) as GameObject;
+			missileObject.name = "MissileTower" + towers.Count;
+			MissileTower result = new MissileTower (missileObject);
+			result.position = new Vector2 (parent.transform.position.x , parent.transform.position.y );
+			towers.Add(result);
+			missileObject.transform.position = parent.transform.position - new Vector3(0,0,1);
+			
+			towersLinkMap[(int)result.position.x,(int)result.position.y] = result; 
+			
+			for( int x = 0; x < height; x++ )
+				for( int y = 0; y < width; y++ )
+					for( int i = 0; i < numberOfPaths; i++ )
+						path[x, y, i] = newPath[x, y, i];
+		} else {
+			towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.None;
+		}
+	}
+	
 	void CreateTower(GameObject parent) {
 		
 		int prise = TowerObject.prises[(int)currentTowerType];
@@ -141,8 +173,11 @@ public class GameController : MonoBehaviour {
 			}
 		}
 		/*------------------------------------------------*/
-		
+		if (Random.value < 0.5f)
 		CreateGunTower(parent);
+		else 
+			
+		CreateMissileTower(parent);
 	}
 	
 	void CreateLevel() {

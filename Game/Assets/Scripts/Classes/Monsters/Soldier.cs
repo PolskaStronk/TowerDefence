@@ -16,10 +16,12 @@ public class Soldier : MonsterObject {
 	}
 	
 	private void Start() {
-		health = 45;
+		health = 450;
 		goldForDeath = 15;
 		maxHealth = health;
 		CreateHealthBar();
+		target.x = this.position.x;
+		target.y = this.position.y;
 	}
 	
 	public override void Update() {
@@ -33,7 +35,7 @@ public class Soldier : MonsterObject {
 			switch (effect.type) {
 				
 			case Effect.EffectType.Slow: 
-				speed = startSpeed/3*2;
+				speed = startSpeed/2;
 				break;
 			case Effect.EffectType.Stun:
 				speed = 0;

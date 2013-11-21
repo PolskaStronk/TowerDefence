@@ -18,8 +18,8 @@ public class GunTower : TowerObject {
 	
 	private void Start() {
 		health = 100;
-		damage = 1;
-		attackSpeed = 1;
+		damage = 10;
+		attackSpeed = 10;
 		attackRange = 2;
 	}
 	

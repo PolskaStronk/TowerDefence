@@ -43,6 +43,17 @@ public abstract class TowerObject : TDObject {
 		gameObject = gameObject_;
 	}
 	
+	public List <MonsterObject> FindEnemiesToSplash(MonsterObject start, float range) {
+	
+		List <MonsterObject> result_ = new List<MonsterObject> ();
+		
+		foreach (MonsterObject monster in GameController.monsters)
+				if ( Mathf.Pow(start.position.x - monster.position.x,2) + Mathf.Pow(start.position.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) ) {
+					result_.Add(monster);
+			}
+		return result_;
+	}
+	
 	public MonsterObject FindEnemy() {
 	
 		if (GameController.monsters.Count == 0) 
@@ -51,7 +62,7 @@ public abstract class TowerObject : TDObject {
 		switch (attackType) {
 			case AttackType.Nearest: 
 			foreach (MonsterObject monster in GameController.monsters)
-				if ( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) <= Mathf.Pow(attackRange, 2) ) {
+				if ( Mathf.Pow(position.x - monster.position.x,2) + Mathf.Pow(position.y - monster.position.y,2) <= Mathf.Pow(attackRange + 0.2f, 2) ) {
 					return monster;
 			}
 			break;
