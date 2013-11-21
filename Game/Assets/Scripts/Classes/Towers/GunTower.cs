@@ -32,6 +32,9 @@ public class GunTower : TowerObject {
 		if (target != null && lastAttackTime + 1/attackSpeed <= Time.time) {
 			lastAttackTime = Time.time;
 			target.AddDamage(damage);
+			target.AddEffect(new Effect (Effect.EffectType.Slow, 1f));
+			if (Random.value <0.02f) 
+				target.AddEffect(new Effect (Effect.EffectType.Stun, 0.2f));
 			
 		}
 			

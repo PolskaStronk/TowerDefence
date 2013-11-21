@@ -6,13 +6,15 @@ public abstract class MonsterObject : TDObject {
 
 	public enum MonsterType {Soldier, EFV, Tank, Boss, MegaBoss, MegaMegaBoss};
 	public MonsterType type;
-	public float speed = 1;
+	public float speed = 2;
 	public bool isattackedNow = false;
 	public int path;
 	public float size = 1;
+	protected int goldForDeath;
 	protected float maxHealth;
 	
-	private List <Effect.EffectType> effects = new List<Effect.EffectType> ();
+	
+	protected List <Effect> effects = new List<Effect> ();
 	
 	private Vector2 targetPosition;
 	private Vector2 direction;
@@ -54,7 +56,15 @@ public abstract class MonsterObject : TDObject {
 		gameObject = gameObject_;
 	}
 	
-	public void AddEffect(Effect.EffectType effect) {
+	public void AddEffect(Effect effect) {
+		
+		foreach (Effect effect_ in effects) {
+			if (effect_.type == effect.type) {
+				effect_.timeIsActive = effect.timeIsActive;
+				return;
+			}
+		}
+		
 		effects.Add(effect);	
 	}
 	
@@ -72,7 +82,7 @@ public abstract class MonsterObject : TDObject {
 	private float last = Time.time;
 	public void MoveToNextCell() {
 		
-		if( Time.time - last >= 0.5 ) {
+		if( Time.time - last >= (speed==0?100:1f/speed) ) {
 			last = Time.time;
 			switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
 				case( GameController.Direction.Left ): this.position.y--;

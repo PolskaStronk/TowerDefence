@@ -8,6 +8,8 @@ public class GameController : MonoBehaviour {
 	public static TowerObject.TowerType [,] towersMap;
 	public static TowerObject [,] towersLinkMap;
 	
+	public static int money = 100;
+	
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
@@ -121,6 +123,12 @@ public class GameController : MonoBehaviour {
 	}
 	
 	void CreateTower(GameObject parent) {
+		
+		int prise = TowerObject.prises[(int)currentTowerType];
+		
+		if (money < prise) return;
+		money -= prise;
+		
 		Pair positionInTowersMap = makePair( (int)(parent.transform.position.x ),(int)(parent.transform.position.y ) );
 		
 		/*-------We can't create tower on enter/exit------*/
