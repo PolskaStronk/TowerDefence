@@ -38,7 +38,7 @@ public class MissileTower : TowerObject {
 			return;
 		
 		lastAttackTime = Time.time;
-		List < MonsterObject > targets = FindEnemiesToSplash ( target_ , splashRange) ;
+		List < MonsterObject > targets = FindEnemiesToSplash ( target_.position , splashRange) ;
 		
 				
 		

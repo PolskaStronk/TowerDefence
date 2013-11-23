@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour {
 	public static TowerObject [,] towersLinkMap;
 	
 	public static int money = 100;
+	public static float difficulty = 1;
 	
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
@@ -22,10 +23,10 @@ public class GameController : MonoBehaviour {
 	private float lastTimeKilledMonsterByHand=-1;
 	private float coolDownToKillMonsterByHand = 0.3f;
 	
-	private struct Pair {
+	public struct Pair {
 		public int first, second;
 	}
-	private static Pair makePair( int x, int y ) {
+	public static Pair makePair( int x, int y ) {
 		Pair a;
 		a.first = x;
 		a.second = y;
@@ -35,8 +36,8 @@ public class GameController : MonoBehaviour {
 	public enum Direction {Up, Down, Left, Right, None};
 	public static int numberOfPaths = 1;
 	public static Direction[,,] path, newPath; //[height, width, path]
-	private static List <Pair>[] enter; //[path]
-	private static List <Pair>[] exit; //[path]
+	public static List <Pair>[] enter; //[path]
+	public static List <Pair>[] exit; //[path]
 	
 	void FindPath() {
 		for( int x = 0; x < height; x++ )
@@ -98,7 +99,7 @@ public class GameController : MonoBehaviour {
 		return true;
 	}
 	
-	void CreateSoldier(Vector2 position) {
+	public static void CreateSoldier(Vector2 position) {
 		GameObject soldierObject = Instantiate(Resources.Load("Prefabs/Monsters/Soldier") as GameObject) as GameObject;
 		soldierObject.name = "Soldier" + monsters.Count;
 		Soldier result = new Soldier (soldierObject);
@@ -154,6 +155,29 @@ public class GameController : MonoBehaviour {
 		}
 	}
 	
+	void CreateSlowLaserTower(GameObject parent) {
+		towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.SlowLaser;
+		
+		FindPath();
+		if( AllPathsAreCorrect() ) {
+			GameObject slowLaserObject = Instantiate(Resources.Load("Prefabs/Towers/SlowLaser") as GameObject) as GameObject;
+			slowLaserObject.name = "SlowLasereTower" + towers.Count;
+			SlowLaserTower result = new SlowLaserTower (slowLaserObject);
+			result.position = new Vector2 (parent.transform.position.x , parent.transform.position.y );
+			towers.Add(result);
+			slowLaserObject.transform.position = parent.transform.position - new Vector3(0,0,1);
+			
+			towersLinkMap[(int)result.position.x,(int)result.position.y] = result; 
+			
+			for( int x = 0; x < height; x++ )
+				for( int y = 0; y < width; y++ )
+					for( int i = 0; i < numberOfPaths; i++ )
+						path[x, y, i] = newPath[x, y, i];
+		} else {
+			towersMap[(int)(parent.transform.position.x ),(int)(parent.transform.position.y )] = TowerObject.TowerType.None;
+		}
+	}
+	
 	void CreateTower(GameObject parent) {
 		
 		int prise = TowerObject.prises[(int)currentTowerType];
@@ -177,7 +201,7 @@ public class GameController : MonoBehaviour {
 		CreateGunTower(parent);
 		else 
 			
-		CreateMissileTower(parent);
+		CreateSlowLaserTower(parent);
 	}
 	
 	void CreateLevel() {
@@ -290,7 +314,7 @@ public class GameController : MonoBehaviour {
 	
 	void Update () {
 		
-		if( Random.value < 0.02f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
+		//if( Random.value < 0.02f ) CreateSoldier( new Vector2( enter[0][0].first, enter[0][0].second ) );
 		
 		MouseController();
 		

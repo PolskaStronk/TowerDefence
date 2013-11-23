@@ -1,0 +1,1 @@
+1,0|1|Soldier|,0.25|1|Soldier|,0.5|1|Soldier|,0.75|1|Soldier|,1|1|Soldier|,1|1|Soldier|,1.25|1|Soldier|,1.5|1|Soldier|,1.75|1|Soldier|,2|1|Soldier|,

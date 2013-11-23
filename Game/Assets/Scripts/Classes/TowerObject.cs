@@ -43,12 +43,12 @@ public abstract class TowerObject : TDObject {
 		gameObject = gameObject_;
 	}
 	
-	public List <MonsterObject> FindEnemiesToSplash(MonsterObject start, float range) {
+	public List <MonsterObject> FindEnemiesToSplash(Vector2 start, float range) {
 	
 		List <MonsterObject> result_ = new List<MonsterObject> ();
 		
 		foreach (MonsterObject monster in GameController.monsters)
-				if ( Mathf.Pow(start.position.x - monster.position.x,2) + Mathf.Pow(start.position.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) ) {
+				if ( Mathf.Pow(start.x - monster.position.x,2) + Mathf.Pow(start.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) ) {
 					result_.Add(monster);
 			}
 		return result_;

@@ -16,7 +16,7 @@ public class Soldier : MonsterObject {
 	}
 	
 	private void Start() {
-		health = 450;
+		health = 45 + 20* ((int)GameController.difficulty - 1);
 		goldForDeath = 15;
 		maxHealth = health;
 		CreateHealthBar();
