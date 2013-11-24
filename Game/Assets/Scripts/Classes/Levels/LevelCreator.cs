@@ -46,7 +46,7 @@ public class LevelCreator : MonoBehaviour {
 				}
 			}
 		}
-		Debug.Log(currentTime + " " + waves.Count);
+		//Debug.Log(currentTime + " " + waves.Count);
 		return result;
 	}
 }

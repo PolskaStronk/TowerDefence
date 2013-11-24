@@ -318,6 +318,21 @@ public class GameController : MonoBehaviour {
 		
 		MouseController();
 		
+		/*
+		List<Vector3> vertexList = new List<Vector3>();
+		LineRenderer lr = gameObject.AddComponent<LineRenderer>();
+		
+		lr.SetColors(Color.red, Color.red);
+		vertexList.Add(new Vector3(0, 0, -5));
+		vertexList.Add(new Vector3(2, 4, -5));
+		vertexList.Add(new Vector3(4, 0, -5));
+		lr.SetVertexCount(vertexList.Count);
+		for(int i=0; i<vertexList.Count; i++){
+		lr.SetPosition(i, vertexList[i]);
+		}
+		
+		*/
+		
 		foreach (TowerObject tower_ in towers) {
 			tower_.Update();	
 		}

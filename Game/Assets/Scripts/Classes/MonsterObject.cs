@@ -6,8 +6,7 @@ public abstract class MonsterObject : TDObject {
 
 	public enum MonsterType {Soldier, EFV, Tank, Boss, MegaBoss, MegaMegaBoss};
 	public MonsterType type;
-	public float speed = 4;
-	public float movementPerSecond = 2;
+	public float speed = 10;
 	public bool isattackedNow = false;
 	public int path;
 	public float size = 1;
@@ -91,21 +90,40 @@ public abstract class MonsterObject : TDObject {
 			if( Mathf.Abs( this.position.x - target.x ) + Mathf.Abs( this.position.y - target.y ) <= 0.000001f ) {
 				this.position.x = target.x;
 				this.position.y = target.y;
-				switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
-					case( GameController.Direction.Left ): target.y--;
-					break;
 				
-					case( GameController.Direction.Right ): target.y++;
-					break;
+				/*---don't delete
+				if( Random.value < 0.05 ) {
+					List< Vector2 > possible_way = new List<Vector2>();
+					if( (int)this.position.x - 1 >= 0 ) {
+						if( GameController.path[ (int)this.position.x - 1, (int)position.y, 0 ] != GameController.Direction.None ) possible_way.Add( new Vector2( (int)this.position.x - 1, (int)position.y ) );
+					}
+					if( (int)this.position.y - 1 >= 0 ) {
+						if( GameController.path[ (int)this.position.x, (int)position.y - 1, 0 ] != GameController.Direction.None ) possible_way.Add( new Vector2( (int)this.position.x, (int)position.y - 1 ) );
+					}
+					if( (int)this.position.x + 1 < GameController.width ) {
+						if( GameController.path[ (int)this.position.x + 1, (int)position.y, 0 ] != GameController.Direction.None ) possible_way.Add( new Vector2( (int)this.position.x + 1, (int)position.y ) );
+					}
+					if( (int)this.position.y + 1 < GameController.height ) {
+						if( GameController.path[ (int)this.position.x, (int)position.y + 1, 0 ] != GameController.Direction.None ) possible_way.Add( new Vector2( (int)this.position.x, (int)position.y + 1 ) );
+					}
+					target = possible_way[ (int)(Random.value * possible_way.Count) ];
+				} else { 
+				*/
 				
-					case( GameController.Direction.Up ): target.x--;
-					break;
+					switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
+						case( GameController.Direction.Left ): target.y--;
+						break;
 				
-					case( GameController.Direction.Down ): target.x++;
-					break;
-				}
-//				Debug.Log ( this.position.x.ToString() + " " + target.x.ToString() );
-//				Debug.Log ( this.position.y.ToString() + " " + target.y.ToString() );
+						case( GameController.Direction.Right ): target.y++;
+						break;
+				
+						case( GameController.Direction.Up ): target.x--;
+						break;
+				
+						case( GameController.Direction.Down ): target.x++;
+						break;
+					}
+				//}
 			}
 			len = Mathf.Abs( this.position.x - target.x ) + Mathf.Abs( this.position.y - target.y );
 			dist = Mathf.Min( distance, len );
@@ -114,26 +132,6 @@ public abstract class MonsterObject : TDObject {
 			this.position.y += ( target.y - this.position.y ) * dist / len;
 			gameObject.transform.position = new Vector3( this.position.x , this.position.y , -2 );
 		}
-		
-		/*
-		if( Time.time - last >= 0.5 ) {
-			last = Time.time;
-			switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
-				case( GameController.Direction.Left ): this.position.y--;
-				break;
-				
-				case( GameController.Direction.Right ): this.position.y++;
-				break;
-				
-				case( GameController.Direction.Up ): this.position.x--;
-				break;
-				
-				case( GameController.Direction.Down ): this.position.x++;
-				break;
-			}
-			//Debug.Log( this.position.x.ToString() + " " + this.position.y.ToString() );
-			gameObject.transform.position = new Vector3( this.position.x , this.position.y , -2 );
-		}*/
 	}
 	
 	public abstract void Update();
