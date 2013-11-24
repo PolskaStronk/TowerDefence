@@ -36,6 +36,11 @@ public class MenuSlider : MonoBehaviour {
 			defaultMenuPos = menu.transform.position;
 		}
 	}
+	
+	void Play() {
+		Application.LoadLevel("Main_Game_Scene");
+	}
+	
 	#region Showing and hiding menu
 	void ShowOptions() {
 		Debug.Log("Showing options");

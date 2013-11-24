@@ -2,17 +2,20 @@ using UnityEngine;
 using System.Collections;
 
 public class GUIController : MonoBehaviour {
-
-	void Start () {
 	
+	public GameObject moneyText;
+	
+	void SelectGundTower() {
+		Debug.Log("GUN!!!!");
+		//Ilya??
 	}
 	
-	
-	void OnGUI() {
-		
-		if (GUI.Button ( new Rect (0,40,150,20) , "You have " + GameController.money + " coins")) 
-			GameController.money +=100;
-		
-		
+	void SelectRocketTower() {
+		Debug.Log("ROCKET!!!!");
+		//Ilya??
 	}
+	
+	void Update() {
+		moneyText.GetComponent<UILabel>().text = "You have " + GameController.money + " coins";
+	} 
 }
