@@ -10,13 +10,14 @@ public class GameController : MonoBehaviour {
 	
 	public static int money = 100;
 	public static float difficulty = 1;
+	public static int health = 10;
 	
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
 	public static int height = 30, width = 30;
 	
-	private static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
+	public static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
 	private static GameObject planePrefab; //???
 	

@@ -17,8 +17,8 @@ public class SlowLaserTower : TowerObject {
 		/**/
 		lineRenderer = gameObject.AddComponent<LineRenderer>();
 		lineRenderer.SetWidth( 0.1f, 0.1f );
+		lineRenderer.material = Resources.Load("Materials/SlowLaser") as Material;
 		/**/
-		
 		type = TowerObject.TowerType.Missile;
 		Start();
 	}

@@ -109,7 +109,12 @@ public abstract class MonsterObject : TDObject {
 					target = possible_way[ (int)(Random.value * possible_way.Count) ];
 				} else { 
 				*/
-				
+				if (GameController.map[(int)this.position.x, (int)position.y] == -1) {
+					GameController.health -- ;
+					health = 0;
+					OnDeath();
+					return;
+				}
 					switch( GameController.path[ (int)this.position.x, (int)position.y, 0 ] ) {
 						case( GameController.Direction.Left ): target.y--;
 						break;

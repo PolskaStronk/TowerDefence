@@ -6,13 +6,11 @@ public class GUIController : MonoBehaviour {
 	public GameObject moneyText;
 	
 	void SelectGundTower() {
-		Debug.Log("GUN!!!!");
-		//Ilya??
+		GameController.currentTowerType = TowerObject.TowerType.Gun;
 	}
 	
 	void SelectRocketTower() {
-		Debug.Log("ROCKET!!!!");
-		//Ilya??
+		GameController.currentTowerType = TowerObject.TowerType.Missile;
 	}
 	
 	void Update() {
