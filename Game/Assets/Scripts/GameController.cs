@@ -15,7 +15,7 @@ public class GameController : MonoBehaviour {
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
 	
-	public static int height = 30, width = 30;
+	public static int height = 15, width = 30;
 	
 	public static TowerObject.TowerType currentTowerType = TowerObject.TowerType.Gun; //???
 	
@@ -33,6 +33,8 @@ public class GameController : MonoBehaviour {
 		a.second = y;
 		return a;
 	}
+	
+	
 	
 	public enum Direction {Up, Down, Left, Right, None};
 	public static int numberOfPaths = 1;
@@ -198,11 +200,22 @@ public class GameController : MonoBehaviour {
 			}
 		}
 		/*------------------------------------------------*/
-		if (Random.value < 0.5f)
-		CreateGunTower(parent);
-		else 
+		
+		switch (currentTowerType) {
 			
-		CreateSlowLaserTower(parent);
+		case  TowerObject.TowerType.Gun:
+				CreateGunTower(parent);
+			break;
+		case  TowerObject.TowerType.Missile:
+				CreateMissileTower(parent);
+			break;
+		case  TowerObject.TowerType.SlowLaser:
+				CreateSlowLaserTower(parent);
+			break;
+			
+			
+			
+		}
 	}
 	
 	void CreateLevel() {
@@ -301,7 +314,7 @@ public class GameController : MonoBehaviour {
 				if (hit.collider.gameObject.name.Contains("Soldier")) {
 					if (lastTimeKilledMonsterByHand + coolDownToKillMonsterByHand < Time.time) {
 						lastTimeKilledMonsterByHand = Time.time;
-						monsters[int.Parse(hit.collider.gameObject.name.Substring(7))].AddDamage(10);
+						monsters[int.Parse(hit.collider.gameObject.name.Substring(7))].AddDamage(1000);
 					}
 					
 				}
@@ -341,6 +354,12 @@ public class GameController : MonoBehaviour {
 		foreach (MonsterObject monster_ in monsters) {
 			//if( monster_.path == -1 ) monsters.Remove( monster_ );
 			monster_.Update();	
+		}
+		
+		if (health <= 0) {
+		
+			
+			
 		}
 		
 	}
