@@ -18,7 +18,7 @@ public class GunTower : TowerObject {
 	
 	private void Start() {
 		health = 100;
-		damage = 10;
+		damage = 3;
 		attackSpeed = 10;
 		attackRange = 2;
 	}
@@ -40,4 +40,12 @@ public class GunTower : TowerObject {
 		
 	}
 	
+	public override void OnUpgrade () {
+		Debug.Log (position + " " + gameObject.name);
+		splashRange = (upgradeSplash<0?-1:upgradeSplash)/2f;
+		damage = 3 + upgradeDamage;
+		attackSpeed = 10 + upgradeAtackSpeed;
+		attackRange = 2 + upgradeRange;
+		
+	}
 }

@@ -32,6 +32,19 @@ public class GUIController : MonoBehaviour {
 		}
 		
 		if (Input.GetKeyDown(KeyCode.Alpha4)) {
+			GameController.UpgradeSelectedTower(TowerObject.UpgradeType.Range);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha5)) {
+			GameController.UpgradeSelectedTower(TowerObject.UpgradeType.Damage);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha6)) {
+			GameController.UpgradeSelectedTower(TowerObject.UpgradeType.Splash);
+		}
+		if (Input.GetKeyDown(KeyCode.Alpha7)) {
+			GameController.UpgradeSelectedTower(TowerObject.UpgradeType.AtackSpeed);
+		}
+		
+		if (Input.GetKeyDown(KeyCode.Alpha0)) {
 			GameController.health = 0;	
 		}
 		

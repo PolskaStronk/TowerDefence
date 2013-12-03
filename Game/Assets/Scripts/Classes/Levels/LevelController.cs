@@ -25,7 +25,7 @@ public class LevelController : MonoBehaviour {
 	
 	void Start () {
 		level = LevelCreator.CreateLevel(20);
-		waveStartTime = 1;
+		waveStartTime = Time.time + 1;
 	}
 	
 	void Update () {

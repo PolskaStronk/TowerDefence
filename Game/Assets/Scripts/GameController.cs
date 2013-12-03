@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class GameController : MonoBehaviour {
 	
+	public static GameController Instance;
+	
 	public static int[,] map;
 	public static TowerObject.TowerType [,] towersMap;
 	public static TowerObject [,] towersLinkMap;
@@ -24,6 +26,9 @@ public class GameController : MonoBehaviour {
 	private float lastTimeKilledMonsterByHand=-1;
 	private float coolDownToKillMonsterByHand = 0.3f;
 	
+	private static Vector2 selectedTower = new Vector2 (-1,-1);
+	static GameObject selectedTowerRange;
+	
 	public struct Pair {
 		public int first, second;
 	}
@@ -41,6 +46,27 @@ public class GameController : MonoBehaviour {
 	public static Direction[,,] path, newPath; //[height, width, path]
 	public static List <Pair>[] enter; //[path]
 	public static List <Pair>[] exit; //[path]
+	
+	public static void UpgradeSelectedTower (TowerObject.UpgradeType upgrade) {
+		if (selectedTower.x >=0)
+			towersLinkMap[(int)selectedTower.x,(int)selectedTower.y].UpgradeTower(upgrade);
+	}
+	
+	public static void CreateSelectedTowerRange() {
+		if (selectedTower.x < 0 ) return;
+		if (selectedTowerRange == null)
+			selectedTowerRange = Instantiate(Resources.Load("Prefabs/Range")as GameObject) as GameObject;
+		selectedTowerRange.transform.position = new Vector3 (selectedTower.x, selectedTower.y, -4);
+		selectedTowerRange.transform.localScale = new Vector3 (2*towersLinkMap[(int)selectedTower.x,(int)selectedTower.y].attackRange,
+			2*towersLinkMap[(int)selectedTower.x,(int)selectedTower.y].attackRange,1);
+	}
+	
+	private void HideSelectedTowerRange() {
+		if (selectedTowerRange != null)
+			selectedTowerRange.transform.position = new Vector3 (0,0,-100);
+	
+		
+	}
 	
 	void FindPath() {
 		for( int x = 0; x < height; x++ )
@@ -244,6 +270,8 @@ public class GameController : MonoBehaviour {
 	
 	void Start () {
 		
+		Instance = this;
+		
 		map = new int [height, width];
 		towersMap = new TowerObject.TowerType[height, width];
 		for( int x = 0; x < height; x++ )
@@ -283,6 +311,20 @@ public class GameController : MonoBehaviour {
 	
 	
 	void MouseController() {
+		
+		if(Input.GetMouseButtonDown(0)){
+			selectedTower = new Vector2 (-1,-1);
+			HideSelectedTowerRange();
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			RaycastHit hit;
+			if (Physics.Raycast(ray, out hit, 100)) {
+				if (hit.collider.gameObject.name.Contains ("Tower")) {
+					selectedTower = new Vector2 ((int)hit.collider.gameObject.transform.position.x, 
+						(int)hit.collider.gameObject.transform.position.y);
+					CreateSelectedTowerRange();
+				}
+			}
+		}
 		
 		if(Input.GetMouseButton(0)){
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -357,10 +399,12 @@ public class GameController : MonoBehaviour {
 		}
 		
 		if (health <= 0) {
-		
+			health = 10;
+			towers = new List<TowerObject> ();
+			monsters = new List<MonsterObject>();
 			
+			Application.LoadLevel("Main_Menu_Scene");
 			
 		}
-		
 	}
 }

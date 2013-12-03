@@ -39,6 +39,7 @@ public class MenuSlider : MonoBehaviour {
 	
 	void Play() {
 		Application.LoadLevel("Main_Game_Scene");
+		
 	}
 	
 	#region Showing and hiding menu

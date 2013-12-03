@@ -9,9 +9,14 @@ public abstract class TowerObject : TDObject {
 	public static int[] sellPrises = new int [] {10000, 10, 7, 6, 50}; 
 	public TowerType type;
 	public int attackRange;
+	protected float splashRange = -1; // no splash
 	
-	public int buyPrise;
-	public int sellPrise;
+	public int upgradeRange = 0;
+	public int upgradeDamage = 0;
+	public int upgradeAtackSpeed = 0;
+	public int upgradeSplash = 0;
+	public enum UpgradeType {Range, Damage, AtackSpeed, Splash};
+	
 	
 	protected bool isDestroyed = false;
 	
@@ -48,7 +53,7 @@ public abstract class TowerObject : TDObject {
 		List <MonsterObject> result_ = new List<MonsterObject> ();
 		
 		foreach (MonsterObject monster in GameController.monsters)
-				if ( Mathf.Pow(start.x - monster.position.x,2) + Mathf.Pow(start.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) ) {
+				if ( Mathf.Pow(start.x - monster.position.x,2) + Mathf.Pow(start.y - monster.position.y,2) <= Mathf.Pow(range + 0.1f, 2) * Mathf.Sign(range) ) {
 					result_.Add(monster);
 			}
 		return result_;
@@ -89,8 +94,30 @@ public abstract class TowerObject : TDObject {
 		
 	}
 	
+	public void UpgradeTower(UpgradeType upgrade) {
+		switch (upgrade) {
+			case UpgradeType.AtackSpeed:
+				upgradeAtackSpeed++;
+				break;
+			case UpgradeType.Damage:
+				upgradeDamage++;
+				break;
+			case UpgradeType.Range:
+				upgradeRange++;
+				break;
+			case UpgradeType.Splash:
+				upgradeSplash++;
+				break;
+				
+		}
+		OnUpgrade();
+		GameController.CreateSelectedTowerRange();
+	}
+	
 	public abstract void Update();
 	
 	public abstract void OnDeath();
+	
+	public abstract void OnUpgrade();
 	
 }

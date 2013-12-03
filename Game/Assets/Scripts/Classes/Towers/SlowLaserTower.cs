@@ -61,4 +61,10 @@ public class SlowLaserTower : TowerObject {
 		
 	}
 	
+	public override void OnUpgrade () {
+		Debug.Log("ASD " + upgradeRange);
+		attackRange = 3 + upgradeRange;
+		
+	}
+	
 }

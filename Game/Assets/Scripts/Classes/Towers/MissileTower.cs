@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class MissileTower : TowerObject {
 	
 	
-	private float splashRange;
 	
 	public MissileTower () {
 		type = TowerObject.TowerType.Missile;
@@ -50,6 +49,15 @@ public class MissileTower : TowerObject {
 	}
 	
 	public override void OnDeath () {
+		
+	}
+	
+	
+	public override void OnUpgrade () {
+		splashRange =  3 +(upgradeSplash)/2f;
+		damage = 10 + upgradeDamage*3;
+		attackSpeed = 0.5f + upgradeAtackSpeed/2f;
+		attackRange = 5 + upgradeRange;
 		
 	}
 	
