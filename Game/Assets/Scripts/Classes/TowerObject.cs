@@ -120,4 +120,5 @@ public abstract class TowerObject : TDObject {
 	
 	public abstract void OnUpgrade();
 	
+	
 }

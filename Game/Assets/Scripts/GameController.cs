@@ -16,6 +16,7 @@ public class GameController : MonoBehaviour {
 	
 	public static List <TowerObject> towers = new List<TowerObject> ();
 	public static List <MonsterObject> monsters = new List<MonsterObject> ();
+	public static List <Missile> missiles = new List<Missile> ();
 	
 	public static int height = 15, width = 30;
 	
@@ -46,6 +47,29 @@ public class GameController : MonoBehaviour {
 	public static Direction[,,] path, newPath; //[height, width, path]
 	public static List <Pair>[] enter; //[path]
 	public static List <Pair>[] exit; //[path]
+	
+	private static GameObject explosion = Resources.Load("Prefabs/Explosion") as GameObject;
+	
+	public static List < GameObject > explosionsPull = new List<GameObject> ();
+	
+	public static void CreateExplosion (float radius, Vector2 position) {
+		
+		GameObject bang = null;
+		bool founded = false;
+		for (int i = 0; i < explosionsPull.Count; i++) {
+			if (explosionsPull[i].particleSystem.isStopped){
+				founded = true;
+				bang = explosionsPull[i];
+				break;
+			}
+		}
+		
+		if (!founded)
+			bang = Instantiate (explosion) as GameObject;
+		bang.transform.position = new Vector3 (position.x,position.y,-5);
+		bang.particleSystem.startSpeed = radius/2f;
+		bang.particleSystem.Play();
+	}
 	
 	public static void UpgradeSelectedTower (TowerObject.UpgradeType upgrade) {
 		if (selectedTower.x >=0)
@@ -313,6 +337,7 @@ public class GameController : MonoBehaviour {
 	void MouseController() {
 		
 		if(Input.GetMouseButtonDown(0)){
+			
 			selectedTower = new Vector2 (-1,-1);
 			HideSelectedTowerRange();
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -332,6 +357,7 @@ public class GameController : MonoBehaviour {
 			if (Physics.Raycast(ray, out hit, 100)) {
 				if (hit.collider.gameObject.name.Contains ("Plane")) {
 					CreateTower(hit.collider.gameObject);
+					
 				}
 				//hit.collider.gameObject.renderer.material.mainTexture = Resources.Load("Textures/texture" + nowTextureNumber.ToString()) as Texture;
 			}
@@ -391,6 +417,10 @@ public class GameController : MonoBehaviour {
 		
 		foreach (TowerObject tower_ in towers) {
 			tower_.Update();	
+		}
+		
+		foreach (Missile missile_ in missiles) {
+			missile_.Update();	
 		}
 		
 		foreach (MonsterObject monster_ in monsters) {

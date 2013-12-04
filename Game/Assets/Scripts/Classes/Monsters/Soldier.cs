@@ -11,6 +11,7 @@ public class Soldier : MonsterObject {
 	public Soldier (GameObject gameObject_) {
 		classType = TDObject.TDType.Monster;
 		gameObject = gameObject_;
+		speed = 1;
 		type = MonsterObject.MonsterType.Soldier;
 		Start ();
 	}

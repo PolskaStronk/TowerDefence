@@ -23,9 +23,12 @@ public class MissileTower : TowerObject {
 		damage = 10;
 		attackSpeed = 0.5f;
 		attackRange = 5;
-		splashRange = 3;
+		splashRange = 1.5f;
 	}
 	
+	public void BlowUp (Vector2 position) {
+		
+	}
 	public override void Update() {
 		
 		if (isDestroyed) return;
@@ -38,7 +41,16 @@ public class MissileTower : TowerObject {
 		
 		lastAttackTime = Time.time;
 		List < MonsterObject > targets = FindEnemiesToSplash ( target_.position , splashRange) ;
+		GameController.CreateExplosion(splashRange, target_.position);
 		
+		
+		Missile missile = Missile.FindMissile();
+		if (missile == null) {
+			missile = new Missile (this,target_);
+			GameController.missiles.Add(missile);
+		} else {
+			missile.Activate(this,target_);
+		}
 				
 		
 		foreach (MonsterObject target in targets) {	
