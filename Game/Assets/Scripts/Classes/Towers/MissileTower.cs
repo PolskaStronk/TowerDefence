@@ -28,6 +28,16 @@ public class MissileTower : TowerObject {
 	
 	public void BlowUp (Vector2 position) {
 		
+		
+		List < MonsterObject > targets = FindEnemiesToSplash ( position , splashRange) ;
+		GameController.CreateExplosion(splashRange, position);
+		
+		bool isStun = Random.value < 0.1f;
+		foreach (MonsterObject target in targets) {	
+			target.AddDamage(damage);
+			if (isStun)  target.AddEffect(new Effect (Effect.EffectType.Stun, 1f));
+		}
+		
 	}
 	public override void Update() {
 		
@@ -40,9 +50,6 @@ public class MissileTower : TowerObject {
 			return;
 		
 		lastAttackTime = Time.time;
-		List < MonsterObject > targets = FindEnemiesToSplash ( target_.position , splashRange) ;
-		GameController.CreateExplosion(splashRange, target_.position);
-		
 		
 		Missile missile = Missile.FindMissile();
 		if (missile == null) {
@@ -52,11 +59,6 @@ public class MissileTower : TowerObject {
 			missile.Activate(this,target_);
 		}
 				
-		
-		foreach (MonsterObject target in targets) {	
-			target.AddDamage(damage);
-			target.AddEffect(new Effect (Effect.EffectType.Stun, 0.1f));
-		}
 			
 	}
 	

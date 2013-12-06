@@ -54,6 +54,7 @@ public class Soldier : MonsterObject {
 	
 	public override void OnDeath () {
 		//Debug.Log("DEAD");
+		deathPosition = position;
 		position = new Vector2 (-100,-100);
 		GameObject.Destroy(gameObject);
 		GameObject.Destroy(healthBarObject);

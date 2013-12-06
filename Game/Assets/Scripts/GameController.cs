@@ -351,6 +351,11 @@ public class GameController : MonoBehaviour {
 			}
 		}
 		
+		if(Input.GetMouseButtonDown(1)){
+			selectedTower = new Vector2 (-1,-1);
+			HideSelectedTowerRange();
+		}
+		
 		if(Input.GetMouseButton(0)){
 			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 			RaycastHit hit;

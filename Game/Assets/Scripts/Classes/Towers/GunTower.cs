@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GunTower : TowerObject {
 	
@@ -29,10 +30,25 @@ public class GunTower : TowerObject {
 		
 		MonsterObject target = FindEnemy();
 		
-		if (target != null && lastAttackTime + 1/attackSpeed <= Time.time) {
-			lastAttackTime = Time.time;
+		if (target == null)
+			return;
+		if (lastAttackTime + 1/attackSpeed > Time.time) 
+			return;
+		
+		lastAttackTime = Time.time;
+		
+		if (splashRange > 0) {
+			List < MonsterObject > targets = FindEnemiesToSplash ( position , splashRange) ;
+			
+			foreach (MonsterObject target_ in targets) {	
+				target_.AddDamage(damage);
+			}
+		} else {
+		
 			target.AddDamage(damage);
 		}
+		
+		
 			
 	}
 	

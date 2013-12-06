@@ -10,8 +10,10 @@ public abstract class MonsterObject : TDObject {
 	public bool isattackedNow = false;
 	public int path;
 	public float size = 1;
+	public Vector2 deathPosition;
 	protected int goldForDeath;
 	protected float maxHealth;
+	
 	
 	
 	protected List <Effect> effects = new List<Effect> ();

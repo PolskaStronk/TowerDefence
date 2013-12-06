@@ -9,6 +9,7 @@ public class Missile {
 	private MonsterObject target;
 	private Vector2 targetPosition;
 	private float speed;
+	private bool isTargetIsDead = false;
 	
 	
 	public static Missile FindMissile () {
@@ -39,7 +40,15 @@ public class Missile {
 	public void Update () {
 		if (!isActive) 
 			return;
-		targetPosition = target.position;
+		if (!isTargetIsDead) {
+			
+			if (target.position.x < -1) {
+				isTargetIsDead = true;
+				targetPosition = target.deathPosition;
+			} else
+				targetPosition = target.position;
+			
+		}
 		Vector2 add_ = (new Vector2(gameObject.transform.position.x,gameObject.transform.position.y) - targetPosition);
 		add_ /= (Mathf.Sqrt(add_.x*add_.x +add_.y*add_.y));
 		Vector3 toAdd = new Vector3 (add_.x,add_.y,0)*speed*Time.deltaTime;
@@ -49,6 +58,7 @@ public class Missile {
 			parentObject.BlowUp(targetPosition);
 			isActive = false;
 			gameObject.transform.position = new Vector3 (0,0,-100);
+			isTargetIsDead = false;
 		}
 	}
 }
